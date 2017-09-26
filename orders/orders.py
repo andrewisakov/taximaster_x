@@ -1,23 +1,28 @@
 #!/usr/bin/python3
 import logging
-from logging.handlers import RotatingFileHandler
+from logging.handlers import TimedRotatingFileHandler
 import datetime
 import psycopg2
 import asyncio
 import websocket
 import settings
 
-logger = None
-
 
 def rotating_log(path, log_level=logging.INFO):
-    global logger
-    logger = logging.getLogger("Rotating Log")
+    # global logger
+    logger = logging.getLogger("orders_log")
     logger.setLevel(log_level)
 
     # add a rotating handler
-    handler = RotatingFileHandler(path, maxBytes=20, backupCount=5)
+    formatter = logging.Formatter('%(asctime)s %(module)s [%(lineno)s] %(levelname)s %(message)s')
+
+    handler = TimedRotatingFileHandler(path, when='midnight', backupCount=5)
+    handler.setFormatter(formatter)
     logger.addHandler(handler)
+    return logger
+
+
+logger = rotating_log('orders.log')
 
 
 def on_message(ws, message):
@@ -40,9 +45,11 @@ def on_open(ws):
     print(ws, 'opened...')
 
 
-@asyncio.coroutine
-def create(order_data):
-    return order_data
+ws = websocket.WebSocketApp(f'ws://{settings.WS_SERVER}/ws',
+                            on_message=on_message,
+                            on_error=on_error,
+                            on_close=on_close,
+                            on_open=on_open)
 
 
 @asyncio.coroutine
@@ -101,12 +108,14 @@ def sms_error(order_data):
 
 
 def got_result(future):
-    print(future.result())
+    # print('got_result', future)
+    logger.info('%s %s' % (future.result(), ws))
+    # print(future.result(), ws)
 
 
 EVENTS = {
     'ORDER_CREATED': created,
-    'ORDER_CREATE': create,
+    # 'ORDER_CREATE': create,
     'ORDER_COMPLETED': completed,
     'ORDER_ABORTED': aborted,
     'ORDER_CLIENT_GONE': client_gone,
@@ -120,7 +129,8 @@ EVENTS = {
     }
 
 
-async def gen_tests(loop, q):
+async def gen_tests(q):
+    # print('gen_tests')
     await q.put(['ORDER_CREATED', {}])
     await q.put(['ORDER_COMPLETED', {}])
     await q.put(['ORDER_ABORTED', {}])
@@ -132,29 +142,35 @@ async def gen_tests(loop, q):
     await q.put(['CALLBACK_TEMPORARY_ERROR', {}])
     await q.put(['SMS_SENDED', {}])
     await q.put(['SMS_ERROR', {}])
+    await q.put(['STOP_ORDERS', {}])
 
 
 async def main(loop, q):
     while True:
         ev, order_data = await q.get()
-        # print(ev)
-        future = asyncio.Future()
-        task = loop.create_task(EVENTS[ev.upper()]([ev, order_data]))
+        # print(EVENTS[ev.upper()])
+        if ev == 'STOP_ORDERS':
+            break
+        # future = asyncio.Future()
+        task = loop.create_task(EVENTS[ev.upper()](order_data))
         task.add_done_callback(got_result)
+        # asyncio.ensure_future(EVENTS[ev.upper()]([ev, order_data]), loop=loop)
+
+    # print('tasks', asyncio.tasks.ALL_COMPLETED)
+    # print('loop', dir(loop))
+    await asyncio.sleep(3)
 
 
 if __name__ == '__main__':
-    rotating_log('orders_log')
+    # logger = rotating_log('orders.log')
     logger.info('Запуск')
-    ws = websocket.WebSocketApp(f'ws://{settings.WS_SERVER}/ws',
-                                on_message=on_message,
-                                on_error=on_error,
-                                on_close=on_close,
-                                on_open=on_open)
     # print(ws.sock)
     q = asyncio.Queue()
     loop = asyncio.get_event_loop()
     future = asyncio.Future()
-    task = loop.create_task(main(loop, q))
-    task = loop.create_task(gen_tests(loop, q))
-    loop.run_forever()
+    task = loop.create_task(gen_tests(q))
+    task = loop.run_until_complete(main(loop, q))
+    loop.stop()
+    loop.close()
+    # loop.run_forever()
+    logger.info('завершение')

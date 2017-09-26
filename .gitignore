@@ -103,4 +103,4 @@ lib64/
 
 # mypy
 .mypy_cache/
-orders/orders_log*
+.vscode/
