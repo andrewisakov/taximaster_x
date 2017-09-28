@@ -9,7 +9,6 @@ def routes_setup():
     return [
         (r'/login', handlers.Login),
         (r'/logout', handlers.Logout),
-        (r'/(.*)', handlers.TMHandler),
         (r'/ws', handlers.WSHandler),
         # (r'/callback_complete/{order_id:int}', callbacks.CallbackComplete),
         # (r'/callback_start', callbacks.CallbackStart),
@@ -29,4 +28,5 @@ def routes_setup():
         # (r'/sms_send', sms.SMSSend),
         # (r'/sms_sended', sms.SMSSended),
         # (r'/sms_error', sms.SMSError),
+        (r'/(.*)', handlers.TMHandler),
         ]

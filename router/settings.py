@@ -21,3 +21,6 @@ TMAPI = {
     'port': 8089,  # порт
     'sign': '1292',  # соль
         }
+
+
+WS_SERVER = f'localhost:{PORT}'
