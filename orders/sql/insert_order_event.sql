@@ -1,0 +1,1 @@
+insert into order_events(order_id, event_name) values(%s, %s);

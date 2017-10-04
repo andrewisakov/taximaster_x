@@ -7,8 +7,10 @@ import handlers
 
 def routes_setup():
     return [
+        (r'/', handlers.Main),
         (r'/login', handlers.Login),
         (r'/logout', handlers.Logout),
+        (r'/input_data', handlers.InputData),
         (r'/ws', handlers.WSHandler),
         # (r'/callback_complete/{order_id:int}', callbacks.CallbackComplete),
         # (r'/callback_start', callbacks.CallbackStart),

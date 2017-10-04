@@ -7,7 +7,8 @@ import tornado.websocket
 import concurrent.futures
 from tornado import gen
 from tornado.queues import Queue
-import tornado.escape
+from tornado.escape import json_encode
+from tornado.escape import json_decode
 
 
 executor = concurrent.futures.ThreadPoolExecutor(20)
@@ -15,38 +16,39 @@ executor = concurrent.futures.ThreadPoolExecutor(20)
 WS_CLIENTS = set()
 
 
-async def ev_subscribe(subscriber, events):
+def ev_subscribe(subscriber, events):
     for ev in events:
         if ev not in EVENTS.keys():
             EVENTS[ev] = set()
         EVENTS[ev.upper()].add(subscriber)
-        tornado.log.logging.info(f'{subscriber} подписан на {EVENTS[ev.upper()]}')
+        tornado.log.logging.info(f'{subscriber} подписался на {ev.upper()}')
 
 
-async def ev_unsubscribe(subscriber, *args):
+def ev_unsubscribe(subscriber, *args):
     for ev in EVENTS.keys():
         if ev not in ('SUBSCRIBE', 'UNSUBSCRIBE'):
-            print('ev_unsubscribe', ev, EVENTS[ev])
+            tornado.log.logging.info(f'ev_unsubscribe {ev}, {EVENTS[ev]}')
             EVENTS[ev].discard(subscriber)
-            print('ev_unsubscribe', ev, EVENTS[ev])
+            tornado.log.logging.info(f'ev_unsubscribe {ev}, {EVENTS[ev]}')
 
 
 async def ev_propagate(self, message):
-    tornado.log.logging.info('ev_propagate:', message, self)
+    tornado.log.logging.info(f'ev_propagate: {message}, {self}')
     ev = tuple(message.keys())[0].upper()
     data = message[ev]
     if ev in ('SUBSCRIBE', 'UNSUBSCRIBE'):
-        await EVENTS[ev](self, data)
-        tornado.log.logging.info(EVENTS[ev])
+        EVENTS[ev](self, data)
+        tornado.log.logging.info(f'{self} отписался...')
     else:
         for route in EVENTS[ev]:
             try:
                 if self is not route:
-                    await route.send(json.dumps({ev: data}))
+                    await route.send_message(json_encode({ev: data}))
             except Exception as e:
-                await tornado.log.logging.critical(e)
+                tornado.log.logging.critical(e)
 
     return self
+
 
 EVENTS = {
     'SUBSCRIBE': ev_subscribe,
@@ -54,7 +56,17 @@ EVENTS = {
          }
 
 
-class Login(tornado.web.RedirectHandler):
+class Main(tornado.web.RequestHandler):
+    async def get(self):
+        tornado.log.logging.info('Main')
+
+
+class InputData(tornado.web.RequestHandler):
+    async def get(self):
+        tornado.log.logging.info('InputData.get')
+
+
+class Login(tornado.web.RequestHandler):
     async def get(self):
         tornado.log.logging.info('Login.get')
 
@@ -62,7 +74,7 @@ class Login(tornado.web.RedirectHandler):
         tornado.log.logging.info('Login.post')
 
 
-class Logout(tornado.web.RedirectHandler):
+class Logout(tornado.web.RequestHandler):
     async def get(self):
         tornado.log.logging.info('Logout.get')
 
@@ -84,12 +96,9 @@ class TMHandler(tornado.web.RequestHandler):
     async def get(self, request):
         self.set_status(200, 'OK')
         tornado.log.logging.info(request)
-        # print(request)
         result = {}
         for r in request.split('&'):
-            # print(r)
             rr = r.split('=')
-            # print(rr)
             result[rr[0]] = rr[1]
         tornado.log.logging.info(result)
 
@@ -97,17 +106,17 @@ class TMHandler(tornado.web.RequestHandler):
 class WSHandler(tornado.websocket.WebSocketHandler):
     async def on_message(self, message):
         tornado.log.logging.info(message)
-        message = json.loads(message)
+        message = json_decode(message)
         await ev_propagate(self, message)
 
     async def open(self):
-        tornado.log.logging.info(self, 'connected')
         WS_CLIENTS.add(self)
+        tornado.log.logging.info(f'{self} connected')
 
-    async def close(self):
-        tornado.log.logging.info(self, 'disconnected')
-        await ev_unsubscribe(self)
-        del WS_CLIENTS[self]
+    def on_close(self):
+        ev_unsubscribe(self)
+        WS_CLIENTS.discard(self)
+        tornado.log.logging.info(f'{self} disconnected')
 
     async def on_error(self):
-        tornado.log.logging.info(self, 'error')
+        tornado.log.logging.error(f'{self} error')
