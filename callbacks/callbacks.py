@@ -28,10 +28,10 @@ async def main(loop, q):
             break
         bridge_data.update(event=ev)
 
-        if bridge_data['id'] not in handlers.callbacks.keys():
-            handlers.callbacks[order_data['id']] = {
-                'semaphore': asyncio.BoundedSemaphore(1),
-                'events': []}
+        # if bridge_data['id'] not in handlers.callbacks.keys():
+        #     handlers.callbacks[order_data['id']] = {
+        #         'semaphore': asyncio.BoundedSemaphore(1),
+        #         'events': []}
         task = loop.create_task(handlers.EVENTS[ev.upper()][0](ev.upper(), bridge_data))
         task.add_done_callback(handlers.event_result)
 
