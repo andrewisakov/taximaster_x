@@ -13,16 +13,16 @@ async def gen_tests(q):
     # print('gen_tests')
     await q.put(['ORDER_CREATED', {'id': 100010}])
     await q.put(['ORDER_ACCEPTED', {'id': 100010}])
-    await q.put(['ORDER_COMPLETED', {'id': 100010}])
-    await q.put(['ORDER_ABORTED', {'id': 100010}])
     await q.put(['ORDER_CLIENT_GONE', {'id': 100010}])
     await q.put(['ORDER_CLIENT_FUCK', {'id': 100010}])
+    await q.put(['CALLBACK_ERROR', {'id': 100010}])
     await q.put(['CALLBACK_DELIVERED', {'id': 100010}])
     await q.put(['CALLBACK_STARTED', {'id': 100010}])
-    await q.put(['CALLBACK_ERROR', {'id': 100010}])
     await q.put(['CALLBACK_TEMPORARY_ERROR', {'id': 100010}])
     await q.put(['SMS_SENDED', {'id': 100010}])
     await q.put(['SMS_ERROR', {'id': 100010}])
+    await q.put(['ORDER_COMPLETED', {'id': 100010}])
+    # await q.put(['ORDER_ABORTED', {'id': 100010}])
     await q.put(['STOP_ORDERS', {'id': 100010}])
 
 
@@ -42,7 +42,7 @@ async def main(loop, q):
             handlers.orders[order_data['id']] = {
                 'semaphore': asyncio.BoundedSemaphore(1),
                 'events': []}
-        task = loop.create_task(handlers.EVENTS[ev.upper()](ev.upper(), order_data))
+        task = loop.create_task(handlers.EVENTS[ev.upper()][0](ev.upper(), order_data))
         task.add_done_callback(handlers.event_result)
 
     await asyncio.sleep(3)

@@ -10,12 +10,6 @@ import websocket_cli as wscli
 from settings import logger
 
 
-LOCKED_EVENTS = {
-    'CALLBACK_START': ('ORDER_ABORTED', 'ORDER_COMPLETED'),
-    'SMS_SEND': ('ORDER_ABORTED', 'ORDER_COMPLETED'),
-}
-
-
 orders = {}
 
 
@@ -23,18 +17,20 @@ def event_result(future):
     """Событие обработано, дальнейшие действия"""
     event, events, order_data, order_events = future.result()
     print(f'event_result: {event}, {events}, {order_data}, {order_events}')
-    logger.info(f'{event}, {events}, {order_data}')
+    # TODO: Отправка events в websocket
+
+    if event in ('ORDER_COMPLETED', 'ORDER_ABORTED'):
+        del orders[order_data['id']]
+    logger.info(f'{event}, {events}, {order_data}, {order_events}')
 
 
 @asyncio.coroutine
 def created(event, order_data):
     """Фиксация события 'ORDER_CREATED'"""
     with (yield from orders[order_data['id']]['semaphore']):
-        # print('created:', event, order_data, orders[order_data['id']]['semaphore'])
         orders[order_data['id']]['events'].append(order_data)
         events = []  # Никакого события попрождать не надо
-        # print('created:', event, order_data)
-        return event, events, order_data, orders[order_data['id']]['events']
+        return event, events, order_data, orders[order_data['id']]['events'][:]
 
 
 @asyncio.coroutine
@@ -43,7 +39,6 @@ def completed(event, order_data):
     with (yield from orders[order_data['id']]['semaphore']):
         orders[order_data['id']]['events'].append(order_data)
         events = []
-        # print('completed:', event, order_data)
         return event, events, order_data, orders[order_data['id']]['events']
 
 
@@ -101,9 +96,14 @@ def callback_delivered(event, order_data):
 def callback_error(event, order_data):
     """Ошибка отзвона"""
     with (yield from orders[order_data['id']]['semaphore']):
+        last_event = orders[order_data['id']]['events'][-1]['event']
         orders[order_data['id']]['events'].append(order_data)
-        events = ['CALLBACK_START', ]
-        # print('callback_error:', event, order_data)
+        if last_event not in EVENTS[order_data['id']][1:]:
+            events = ['CALLBACK_START', ]
+        else:
+            print(f'last event {last_event} is blocing {event}')
+            logger.debug(f'last event {last_event} is blocing {event}')
+            events = []
         return event, events, order_data, orders[order_data['id']]['events']
 
 
@@ -111,9 +111,14 @@ def callback_error(event, order_data):
 def callback_busy(event, order_data):
     """Занято"""
     with (yield from orders[order_data['id']]['semaphore']):
+        last_event = orders[order_data['id']]['events'][-1]['event']
         orders[order_data['id']]['events'].append(order_data)
-        events = ['CALLBACK_START', ]
-        # print('callback_busy:', event, order_data)
+        if event not in EVENTS[order_data['id']][1:]:
+            events = ['CALLBACK_START', ]
+        else:
+            print(f'last event {last_event} is blocing {event}')
+            logger.debug(f'last event {last_event} is blocing {event}')
+            events = []
         return event, events, order_data, orders[order_data['id']]['events']
 
 
@@ -131,9 +136,14 @@ def callback_started(event, order_data):
 def callback_temporary_error(event, order_data):
     """Времнная ошибка отзвона. Повторить"""
     with (yield from orders[order_data['id']]['semaphore']):
+        last_event = orders[order_data['id']]['events'][-1]['event']
         orders[order_data['id']]['events'].append(order_data)
-        events = ['CALLBACK_START', ]
-        # print('callback_temporary_error:', event, order_data)
+        if event not in EVENTS[order_data['id']][1:]:
+            events = ['CALLBACK_START', ]
+        else:
+            print(f'last event {last_event} is blocing {event}')
+            logger.debug(f'last event {last_event} is blocing {event}')
+            events = []
         return event, events, order_data, orders[order_data['id']]['events']
 
 
@@ -158,18 +168,18 @@ def sms_error(event, order_data):
 
 
 EVENTS = {
-    'ORDER_CREATED': created,
+    'ORDER_CREATED': (created, ),
     # 'ORDER_CREATE': create,
-    'ORDER_ACCEPTED': accepted,
-    'ORDER_COMPLETED': completed,
-    'ORDER_ABORTED': aborted,
-    'ORDER_CLIENT_GONE': client_gone,
-    'ORDER_CLIENT_FUCK': client_fuck,
-    'CALLBACK_DELIVERED': callback_delivered,
-    'CALLBACK_BUSY': callback_busy,
-    'CALLBACK_STARTED': callback_started,
-    'CALLBACK_ERROR': callback_error,
-    'CALLBACK_TEMPORARY_ERROR': callback_temporary_error,
-    'SMS_SENDED': sms_sended,
-    'SMS_ERROR': sms_error,
+    'ORDER_ACCEPTED': (accepted, ),
+    'ORDER_COMPLETED': (completed, ),
+    'ORDER_ABORTED': (aborted, ),
+    'ORDER_CLIENT_GONE': (client_gone, ),
+    'ORDER_CLIENT_FUCK': (client_fuck, ),
+    'CALLBACK_DELIVERED': (callback_delivered, ),
+    'CALLBACK_BUSY': (callback_busy, 'ORDER_CREATED', 'ORDER_COMPLETED', 'ORDER_ABORTED', 'ORDER_CLIENT_FUCK' ),
+    'CALLBACK_STARTED': (callback_started, ),
+    'CALLBACK_ERROR': (callback_error, 'ORDER_CREATED', 'ORDER_COMPLETED', 'ORDER_ABORTED', 'ORDER_CLIENT_FUCK' ),
+    'CALLBACK_TEMPORARY_ERROR': (callback_temporary_error, 'ORDER_CREATED', 'ORDER_COMPLETED', 'ORDER_ABORTED', 'ORDER_CLIENT_FUCK' ),
+    'SMS_SENDED': (sms_sended, ),
+    'SMS_ERROR': (sms_error, ),
     }
