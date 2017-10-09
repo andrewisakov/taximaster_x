@@ -9,6 +9,7 @@ import websocket_cli as wscli
 import freeswitch
 import database
 from settings import logger
+import freeswitch
 
 
 db = pg2.connect(settings.DNS)
@@ -19,9 +20,10 @@ distributors = {}
 
 def load_distributors():
     SQL = database.get_query('distributors.sql')
-    c = db.cursor()
+    c = yield from db.cursor()
     c.execute(SQL)
     distributors = {dst[0]: asyncio.BoundedSemaphore(dst[1]) for dst in c.fetchall()}
+    yield from c.close()
 
 
 @asyncio.coroutine
@@ -48,21 +50,26 @@ def event_result(future):
 
 
 @asyncio.coroutine
-def callback_start(event, bridge_data):
+def callback_start(event, bridge_data, loop):
     distributor = yield from select_distributor(bridge_data['phones'][0])
+    bridge_data.update(distributors=(distributor, ))
     with (yield from distributors[distributor]):
-        events = ['CALLBACK_STARTED']
+        events = ['CALLBACK_STARTED', ]
+        task = loop.create_task(freeswitch.bridge_start, (bridge_data, loop))
+        task.add_done_callback(freeswirch.callback_done)
         return event, events, bridge_data
 
 
 @asyncio.coroutine
-def callback_bridge_start(event, bridge_data):
+def callback_bridge_start(event, bridge_data, loop):
     # TODO: Уточнить, кого первым вызывать, кого вторым.
     distributor0 = yield from select_distributor(bridge_data['phones'][0])
     distributor1 = yield from select_distributor(bridge_data['phones'][1])
     update.bridge_data(distributors=(distributor0, distributor1))
     with (yield from distributors[distributor0]), (yield from distributors[distributor1]):
-        events = ['CALLBACK_BRIDGE_STARTED']
+        events = ['CALLBACK_BRIDGE_STARTED', ]
+        task = loop.create_task(freeswitch.bridge_start, (bridge_data, loop))
+        task.add_done_callback(freeswirch.callback_done)
         return event, events, bridge_data
 
 
