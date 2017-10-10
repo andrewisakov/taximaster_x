@@ -56,9 +56,8 @@ def callback_start(event, bridge_data, loop):
     with (yield from distributors[distributor]):
         events = ['CALLBACK_STARTED', ]
         task = loop.create_task(freeswitch.bridge_start, (bridge_data, loop))
-        task.add_done_callback(freeswirch.callback_done)
+        task.add_done_callback(freeswitch.callback_done)
         return event, events, bridge_data
-
 
 @asyncio.coroutine
 def callback_bridge_start(event, bridge_data, loop):

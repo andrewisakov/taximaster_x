@@ -105,3 +105,4 @@ lib64/
 .mypy_cache/
 .vscode/
 orders/orders.log*
+esl_proxy/esl_proxy.pid

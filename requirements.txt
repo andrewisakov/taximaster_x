@@ -5,3 +5,4 @@ websocket-client
 asyncio
 asyncws
 aiopg
+python-daemon
