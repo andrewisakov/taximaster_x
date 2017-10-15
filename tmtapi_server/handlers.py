@@ -2,7 +2,7 @@
 import json
 import tornado.log
 import tornado.web
-import tornado.websocket
+# import tornado.websocket
 # from tornado.concurrent import run_on_executor
 import concurrent.futures
 from tornado import gen
@@ -62,28 +62,35 @@ class Main(tornado.web.RequestHandler):
         tornado.log.logging.info('Main')
 
 
-class InputData(tornado.web.RequestHandler):
-    async def get(self):
-        tornado.log.logging.info('InputData.get')
+class TM_TAPI(tornado.web.RequestHandler):
+
+    # @gen.coroutine
+    async def get(self, request):
+        print('TM_API.get request=', request)
+
+        # self.set_status(200, 'OK')
+        uri, params = tornado.escape.url_unescape(self.request.uri).split('?')
+        command = uri.split('/')[-1]
+        tornado.log.logging.info(f'{command}, {params}')
+        params = {r.split('=')[0].upper(): r.split('=')[1] for r in params.split('&')}
+        tornado.log.logging.info(params)
+        api_result = await tmtapi.requests[command](**params)
+        self.write(api_result)
+
+    async def post(self, request):
+        # self.set_status(200, 'OK')
+        # tornado.log.logging.info(self.kwargs)
+        print(request)
+        uri, params = tornado.escape.url_unescape(self.request.uri).split('?')
+        command = uri.split('/')[-1]
+        tornado.log.logging.info(f'{command}, {params}')
+        params = {r.split('=')[0].upper(): r.split('=')[1] for r in params.split('&')}
+        tornado.log.logging.info(params)
+        api_result = await tmtapi.requests[command](**params)
+        self.write(result)
 
 
-class Login(tornado.web.RequestHandler):
-    async def get(self):
-        tornado.log.logging.info('Login.get')
-
-    async def post(self):
-        tornado.log.logging.info('Login.post')
-
-
-class Logout(tornado.web.RequestHandler):
-    async def get(self):
-        tornado.log.logging.info('Logout.get')
-
-    async def post(self):
-        tornado.log.logging.info('Logout.post')
-
-
-class TMHandler(tornado.web.RequestHandler):
+class COMMON_API(tornado.web.RequestHandler):
 
     async def get(self, request):
         self.set_status(200, 'OK')
@@ -91,30 +98,10 @@ class TMHandler(tornado.web.RequestHandler):
         uri = tornado.escape.url_unescape(self.request.uri)
         result = {r.split('=')[0]: r.split('=')[1] for r in uri.split('?')[1].split('&')}
         tornado.log.logging.info(result)
-        api_result = await tmtapi.api_request(
-            ('get_info_by_order_id',
-             {'order_id': result['order_id'],
-              'fields': 'DRIVER_TIMECOUNT-SUMM-SUMCITY-'
-              'DISCOUNTEDSUMM-SUMCOUNTRY-SUMIDLETIME-CASHLESS-'
-              'CLIENT_ID-FROMBORDER-DRIVER_PHONE-CREATION_WAY',
-              }))
-        tornado.log.logging.info(api_result)
 
-
-class WSHandler(tornado.websocket.WebSocketHandler):
-    async def on_message(self, message):
-        tornado.log.logging.info(message)
-        message = json_decode(message)
-        await ev_propagate(self, message)
-
-    async def open(self):
-        WS_CLIENTS.add(self)
-        tornado.log.logging.info(f'{self} connected')
-
-    def on_close(self):
-        ev_unsubscribe(self)
-        WS_CLIENTS.discard(self)
-        tornado.log.logging.info(f'{self} disconnected')
-
-    async def on_error(self):
-        tornado.log.logging.error(f'{self} error')
+    async def post(self, request):
+        self.set_status(200, 'OK')
+        # tornado.log.logging.info(self.kwargs)
+        uri = tornado.escape.url_unescape(self.request.uri)
+        result = {r.split('=')[0]: r.split('=')[1] for r in uri.split('?')[1].split('&')}
+        tornado.log.logging.info(result)

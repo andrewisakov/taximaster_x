@@ -20,7 +20,6 @@ def originate(order_data):
     with ESL.ESLConnection(*settings.ESLLogin) as e:
         if e.connected():
             uuid = e.api("create_uuid").getBody()
-            # order_data[u'uuid'] = uuid
             logger.debug('orgiginate uuid %s' % uuid)
             originate_pickle = '/tmp/%s' % uuid
             esl_command = "expand originate"
@@ -40,6 +39,8 @@ def originate(order_data):
             res = e.api(esl_command, esl_data.encode('UTF-8'))
             order_data[u'uuid'] = uuid
             order_data[u'result'] = json.loads(res.serialize('json'))['_body'].replace('\n', '')
+        else:
+            logger.error('do not connect to ')
     return order_data
 
 
@@ -47,8 +48,7 @@ class OriginateHandler(asyncore.dispatcher_with_send):
     def handle_read(self):
         data = self.recv(8192)
         if data:
-            logger.debug(data.decode())
-            order_data = pickle.loads(data)
+            order_data = pickle.loads(data)  # Нежелание заморачиваться с datetime in json
             originate_result = originate(order_data)
             data = pickle.dumps(originate_result, protocol=2)
             self.send(data)
@@ -69,27 +69,6 @@ class OriginateProxy(asyncore.dispatcher):
             logger.debug('incoming connection from {}'.format(pair))
             handler = OriginateHandler(sock)
 
-
-# class Main():
-#     def __init__(self, keep_logger):
-#         self.stdin_path = '/dev/null'
-#         self.stdout_path = '/dev/tty'
-#         self.stderr_path = '/dev/tty'
-#         self.working_directory = settings.APP_DIR
-#         self.umask = 0o002
-#         self.pidfile_path = settings.PID
-#         self.pidfile_timeout = 30
-#         self.files_preserve = [keep_logger.handlers[0].stream.fileno()]
-
-#     def run(self):
-#         server = OriginateProxy(**settings.ESL_PROXY)
-#         asyncore.loop()
-
-
-# print(logger.handlers[0].stream.fileno())
-# app = Main(logger)
-# daemon_runner = runner.DaemonRunner(app)
-# daemon_runner.do_action()
 
 with daemon.DaemonContext(
     working_directory=settings.APP_DIR,
