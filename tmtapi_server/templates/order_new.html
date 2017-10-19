@@ -1,0 +1,23 @@
+<div class="order_row">
+    <input class="order_col order_id" type="text" name="order_id">
+    <input class="order_col phone" type="text" name="order_phone">
+    <input class="order_col datetime" type="datetime" name="order_starttime">
+    <input class="order_col datetime" type="datetime" name="order_finishtime">
+    <select class="order_col crew">
+        {% for crew in crews %}
+        <option value="{{crew['id']}}">
+            {{list(filter(lambda x: x['id']==crew['driver_id'], drivers))[0]['term_account']}}:
+            {{list(filter(lambda x: x['id']==crew['car_id'], cars))[0]['mark']}}&nbsp;
+            {{list(filter(lambda x: x['id']==crew['car_id'], cars))[0]['model']}}&nbsp;
+            {{list(filter(lambda x: x['id']==crew['car_id'], cars))[0]['color']}}&nbsp;
+            {{list(filter(lambda x: x['id']==crew['car_id'], cars))[0]['gosnumber']}}
+        </option>
+        {% end %}
+    </select>
+    <select class="order_col order_state">
+        {% for state in order_states %}
+        <option value="{{ state }}">{{ order_states[state] }}</option>
+        {% end %}
+    </select>
+    <input class="order_col button change_state" type="button" name="order_add" >
+</div>

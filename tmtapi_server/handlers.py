@@ -60,6 +60,27 @@ EVENTS = {
 class Main(tornado.web.RequestHandler):
     async def get(self):
         tornado.log.logging.info('Main')
+        self.render('orders.html',
+                    orders=tmtapi.ORDERS,
+                    order_states=tmtapi.ORDER_STATES,
+                    drivers=tmtapi.DRIVERS,
+                    cars=tmtapi.CARS,
+                    crews=tmtapi.CREWS)
+
+
+class ChangeOrderState(tornado.web.RequestHandler):
+    SUPPORTED_METHODS = ('POST',)
+    async def check_xsrf_cookie(self):
+        pass
+
+    async def post(self):
+        tornado.log.logging.info(self.request.body)
+        data = json_decode(self.request.body)
+        data['order_id'] = int(data['order_id'])
+        tornado.log.logging.info(data)
+        response = data
+        response.update(code=0)
+        self.write(json_encode(response))
 
 
 class TM_TAPI(tornado.web.RequestHandler):

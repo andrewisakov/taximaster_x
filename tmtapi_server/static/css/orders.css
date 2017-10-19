@@ -1,0 +1,37 @@
+.order_row {
+    display: block;
+}
+
+.order_col {
+    display: inline-block;
+    border: 1px solid lightgray;
+    margin: 0;
+    margin-right: 3px;
+    font-size: 14px;
+}
+
+.order_id {
+    width: 60px;
+    text-align: right;
+}
+
+.phone {
+    width: 90px;
+    text-align: right;
+}
+
+.datetime {
+    width: 120px;
+}
+
+.state {
+    width: 100px;
+}
+
+.crew {
+    width: 80px;
+}
+
+.button {
+    width: 100px;
+}

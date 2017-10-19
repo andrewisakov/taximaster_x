@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script type="text/javascript" src="https://cdn.rawgit.com/brython-dev/brython/stable/www/src/brython.js"></script>
+    <link rel="stylesheet" href="{{ static_url('css/orders.css') }}" type="text/css" />
+    <script type="text/python3" src="{{ static_url('py/orders_ajax.py') }}"></script>
+</head>
+
+<body onload="brython(1)">
+    {% for order in orders %} {% include 'order.html' %} {% end %}
+    {% include 'order_new.html' %}
+</body>
+
+</html>

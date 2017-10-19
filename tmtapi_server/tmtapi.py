@@ -8,25 +8,29 @@ from settings import TMAPI
 
 
 ORDER_STATES = {
-    'order_created': 1,
-    'order_aborted': 5,
-    'order_completed': 4,
-    'order_client_in_car': 11,
-    'order_client_gone': 23,
-    'order_client_fuck': 12,
-    'order_crew_at_place': 10,
-    'order_no_cars': 68,
-    'order_no_cars_aborted': 6,
-    'order_accepted': 7,
-    'order_denied_driver': 9,
+    'order_created': 'Создан',
+    'order_aborted': 'Прекращён',
+    'order_completed': 'Выполнен',
+    'order_client_in_car': 'Клиент в машине',
+    'order_client_gone': 'Клиент не выходит',
+    'order_client_fuck': 'Клиент не вышел',
+    'order_crew_at_place': 'Экипаж на месте',
+    'order_no_cars': 'Нет машин',
+    'order_no_cars_aborted': 'Нет машин: Преращён',
+    'order_accepted': 'Водитель принял заказ',
+    'order_denied_driver': 'Водитель отказался от заказа',
     }
-ORDERS = [{'order_id': 18561, 'state': 1, 'starttime': '', 'finishtime': '',
-          'discountsumm': 70.0, 'phone_to_callback': '89278831370', }, ]
-CREWS = [{'crew_id': 1, 'car_id': 1, 'driver_id': 1}, ]
-CARS = [{'car_id': 1, 'color': 'красный', 'mark': 'ВАЗ', 'model': '2114', 'gosnumber': '515'}, ]
-DRIVERS = [{'driver_id': 1, 'term_account': '01181', 'phone': '88001001010', }, ]
-CALLBACK_STATES = {'order_callback_accepted', 'order_callback_started', 'order_callback_delivered',
-                   'order_callback_busy', 'order_callback_no_answer', 'order_callback_error'}
+ORDERS = [{'id': 18561, 'state': '', 'starttime': '', 'finishtime': '',
+           'discountsumm': 70.0, 'phone_to_callback': '89278831370',
+           'crew_id': 0, }, ]
+ORDER_H = {}
+CREWS = [{'id': 1, 'car_id': 1, 'driver_id': 1}, ]
+CARS = [{'id': 1, 'color': 'красный', 'mark': 'ВАЗ', 'model': '2114',
+         'gosnumber': '515'}, ]
+DRIVERS = [{'id': 1, 'term_account': '01181', 'phone': '88001001010', }, ]
+CALLBACK_STATES = {'order_callback_accepted', 'order_callback_started',
+                   'order_callback_delivered', 'order_callback_busy',
+                   'order_callback_no_answer', 'order_callback_error'}
 
 async def get_info_by_order_id(**kwargs):
     order_data = kwargs
@@ -107,7 +111,7 @@ async def get_order_state(**kwargs):
 async def set_request_state(**kwargs):
     order_data = kwargs
     order_id = order_data['ORDER_ID']
-    
+
 
 async def signature(data):
     # генератор подписи

@@ -12,6 +12,7 @@ settings = {
     'compiled_template_cache': False,
     'serve_traceback': True,
     'static_path': os.path.join(os.path.dirname(__file__), 'static'),
+    'template_path': os.path.join(os.path.dirname(__file__), "templates"),
     'archive_path': os.path.join(os.path.dirname(__file__), 'static'),
 }
 
