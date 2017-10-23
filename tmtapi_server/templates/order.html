@@ -1,8 +1,8 @@
 <div class="order_row">
     <div class="order_col order_id">{{ order['id'] }}</div>
     <div class="order_col phone phone_to_callback">{{ order['phone_to_callback'] }}</div>
-    <div class="order_col datetime">{{ order['starttime'] }}</div>
-    <div class="order_col datetime">{{ order['finishtime'] }}</div>
+    <div class="order_col datetime starttime">{{ order['starttime'] }}</div>
+    <div class="order_col datetime finishtime">{{ order['finishtime'] }}</div>
     <select class="order_col crew">
         {% for crew in crews %}
         <option

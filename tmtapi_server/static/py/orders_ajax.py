@@ -16,13 +16,17 @@ def change_order_state(ev):
         data = json.loads(req.text)
         print(data)
         if data['code'] == 0:
-            pass
+            if data['state'] == 'order_created':
+                ev.target.parent.getElementsByClassName('starttime').text = data['starttime']
+            if data['state'] == 'order_completed':
+                ev.target.parent.getElementsByClassName('finishtime').text = data['finishtime']
         else:
             pass
 
     # print(dir(ev))
     send_ajax(data={'order_id': ev.target.parent.getElementsByClassName('order_id')[0].text,
                     'order_state': ev.target.parent.getElementsByClassName('order_state')[0].value,
+                    'order_crew_id': ev.target.parent.getElementsByClassName('crew')[0].value,
                     },
               url='/change_order_state',
               method='post',

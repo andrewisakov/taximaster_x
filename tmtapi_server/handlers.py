@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 import json
+import datetime
 import tornado.log
 import tornado.web
 # import tornado.websocket
@@ -63,6 +64,7 @@ class Main(tornado.web.RequestHandler):
         self.render('orders.html',
                     orders=tmtapi.ORDERS,
                     order_states=tmtapi.ORDER_STATES,
+                    order_h=tmtapi.ORDER_H,
                     drivers=tmtapi.DRIVERS,
                     cars=tmtapi.CARS,
                     crews=tmtapi.CREWS)
@@ -73,14 +75,34 @@ class ChangeOrderState(tornado.web.RequestHandler):
     async def check_xsrf_cookie(self):
         pass
 
+    def json_serial(self, data):
+        if isinstance(data, (datetime.datetime, )):
+            return data.__str__()
+        return data
+
     async def post(self):
         tornado.log.logging.info(self.request.body)
-        data = json_decode(self.request.body)
+        data = json.loads(self.request.body)
         data['order_id'] = int(data['order_id'])
-        tornado.log.logging.info(data)
-        response = data
+        tornado.log.logging.debug(data)
+
+        order = list(filter(lambda x: x['id'] == data['order_id'], tmtapi.ORDERS))[0]
+        order['state'] = data['order_state']
+        data['order_crew_id'] = int(data['order_crew_id']) if data['order_crew_id'] else 0
+        if order['id'] not in tmtapi.ORDER_H:
+            tmtapi.ORDER_H[order['id']] = []
+        tmtapi.ORDER_H[data['order_id']].append((datetime.datetime.now(),
+                                                 data['order_state'],
+                                                 data['order_crew_id'], ))
+        if data['order_state'] == 'order_created':
+            order['starttime'] = list(filter(lambda x: x[1] == 'order_created', tmtapi.ORDER_H[data['order_id']]))[0][0]
+        if data['order_state'] == 'order_completed':
+            order['finishtime'] = list(filter(lambda x: x[1] == 'order_completed', tmtapi.ORDER_H[data['order_id']]))[0][0]
+        tornado.log.logging.debug(list(filter(lambda x: x['id'] == data['order_id'], tmtapi.ORDERS))[0])
+        tornado.log.logging.debug(tmtapi.ORDER_H[data['order_id']])
+        response = order
         response.update(code=0)
-        self.write(json_encode(response))
+        self.write(json.dumps(response, default=self.json_serial))
 
 
 class TM_TAPI(tornado.web.RequestHandler):
