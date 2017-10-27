@@ -20,24 +20,28 @@ ORDER_STATES = {
     'order_accepted': 'Водитель принял заказ',
     'order_denied_driver': 'Водитель отказался от заказа',
     }
-ORDERS = [{'id': 18561, 'state': '', 'starttime': '', 'finishtime': '',
-           'discountsumm': 70.0, 'phone_to_callback': '89278831370',
-           'crew_id': 0, }, ]
+ORDERS = [{'id': 18561, 'state': 0, 'starttime': '', 'finishtime': '',
+           'discountedsumm': 70.0, 'phone_to_callback': '89278831370',
+           'crew_id': 0, 'callback_state': 0, 'creation_way': 'operator',
+           'sourcetime': '', 'source': '', 'destination': '',
+           'client_id': 1}, ]
 ORDER_H = {}
+CLIENTS = [{'id': 1, 'card_no': '0337', 'name': 'Андрей', }]
 CREWS = [{'id': 1, 'car_id': 1, 'driver_id': 1}, ]
 CARS = [{'id': 1, 'color': 'красный', 'mark': 'ВАЗ', 'model': '2114',
          'gosnumber': '515'}, ]
+
 DRIVERS = [{'id': 1, 'term_account': '01181', 'phone': '88001001010', }, ]
 CALLBACK_STATES = {'order_callback_accepted', 'order_callback_started',
                    'order_callback_delivered', 'order_callback_busy',
                    'order_callback_no_answer', 'order_callback_error'}
 
-async def get_info_by_order_id(**kwargs):
-    order_data = kwargs
-    if 'FIELDS' in params.keys():
-        params['FIELDS'] = tuple([f for f in params['FIELDS'].split('-')])
-    order_id = order_data['ORDER_ID']
-    tornado.log.logging.debug(f'{order_data}')
+async def get_info_by_order_id(order_data):
+    # order_data = kwargs
+    tornado.log.logging.info(f'{order_data}')
+    if 'fields' in order_data.keys():
+        order_data['fields'] = tuple([f for f in order_data['fields'].split('-')])
+    order_id = order_data['order_id']
     result = {'response':
               {
                   'code': 0, 'descr': 'OK',
@@ -46,9 +50,11 @@ async def get_info_by_order_id(**kwargs):
               }
     for r in order_data['fields']:
         result['response']['data'][r] = ''
+
+    dicttoxml.set_debug(False)
     result = dicttoxml.dicttoxml(result, root=False, attr_type=False)
     # result = xmltodict.parse(result)
-    print(result)
+    tornado.log.logging.info(result)
     return result
 
 
@@ -61,6 +67,7 @@ async def change_order_state(**kwargs):
                   'data': {'order_id': order_id, 'new_state': need_state},
               },
               }
+    dicttoxml.set_debug(False)
     result = dicttoxml.dicttoxml(result, root=False, attr_type=False)
     return result
 

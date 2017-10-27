@@ -27,6 +27,7 @@ def change_order_state(ev):
     send_ajax(data={'order_id': ev.target.parent.getElementsByClassName('order_id')[0].text,
                     'order_state': ev.target.parent.getElementsByClassName('order_state')[0].value,
                     'order_crew_id': ev.target.parent.getElementsByClassName('crew')[0].value,
+                    'order_phone_to_callback': ev.target.parent.getElementsByClassName('phone_to_callback')[0].text,
                     },
               url='/change_order_state',
               method='post',

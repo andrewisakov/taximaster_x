@@ -2,7 +2,8 @@
 import os
 import logger as logger_
 
-WS_SERVER = '127.0.0.1'
+WS_SERVER = 'ws://127.0.0.1:4055/ws'
+WS_TIMEOUT = 10
 
 APP_DIR = os.path.dirname(__file__)
 SQL_DIR = os.path.join(APP_DIR, 'sql')

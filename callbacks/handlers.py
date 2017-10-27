@@ -5,7 +5,7 @@ import asyncio
 import psycopg2 as pg2
 import asyncpg
 import settings
-import websocket_cli as wscli
+# import websocket_cli as wscli
 import freeswitch
 import database
 from settings import logger
@@ -58,6 +58,7 @@ def callback_start(event, bridge_data, loop):
         task = loop.create_task(freeswitch.bridge_start, (bridge_data, loop))
         task.add_done_callback(freeswitch.callback_done)
         return event, events, bridge_data
+
 
 @asyncio.coroutine
 def callback_bridge_start(event, bridge_data, loop):

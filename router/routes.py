@@ -30,5 +30,7 @@ def routes_setup():
         # (r'/sms_send', sms.SMSSend),
         # (r'/sms_sended', sms.SMSSended),
         # (r'/sms_error', sms.SMSError),
-        (r'/(.*)', handlers.TMHandler),
+        (r'/gen/message', handlers.SMSMessage),
+        (r'/gen/phrase', handlers.VoiceMessage),
+        (r'/(execsvcscript.*)', handlers.TMHandler),
         ]

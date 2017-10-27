@@ -1,7 +1,7 @@
 tornado
 psycopg2
 fdb
-websocket-client
+websockets
 asyncio
 asyncws
 aiopg

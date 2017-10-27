@@ -33,28 +33,28 @@ def ev_unsubscribe(subscriber, *args):
             tornado.log.logging.info(f'ev_unsubscribe {ev}, {EVENTS[ev]}')
 
 
-async def ev_propagate(self, message):
+async def ev_propagate(message, self=None):
     tornado.log.logging.info(f'ev_propagate: {message}, {self}')
     ev = tuple(message.keys())[0].upper()
     data = message[ev]
     if ev in ('SUBSCRIBE', 'UNSUBSCRIBE'):
         EVENTS[ev](self, data)
-        tornado.log.logging.info(f'{self} отписался...')
+        # tornado.log.logging.info(f'{self} отписался...')
     else:
-        for route in EVENTS[ev]:
-            try:
+        if ev in EVENTS.keys():
+            for route in EVENTS[ev]:
                 if self is not route:
-                    await route.send_message(json_encode({ev: data}))
-            except Exception as e:
-                tornado.log.logging.critical(e)
-
+                    try:
+                        await route.write_message(json_encode({ev: data}))
+                    except Exception as e:
+                        tornado.log.logging.critical(e)
     return self
 
 
 EVENTS = {
     'SUBSCRIBE': ev_subscribe,
     'UNSUBSCRIBE': ev_unsubscribe,
-         }
+}
 
 
 class Main(tornado.web.RequestHandler):
@@ -83,29 +83,59 @@ class Logout(tornado.web.RequestHandler):
         tornado.log.logging.info('Logout.post')
 
 
+class SMSMessage(tornado.web.RequestHandler):
+    async def get(self):
+        tornado.log.logging.info(self.request.body)
+
+
+class VoiceMessage(tornado.web.RequestHandler):
+    async def get(self):
+        tornado.log.logging.info(self.request.body)
+
+
 class TMHandler(tornado.web.RequestHandler):
+    params = {'name': 'event', 'startparm3': 'callback_state',
+              'startparm4': 'order_id', 'startparm1': 'phone', }
 
     async def get(self, request):
         self.set_status(200, 'OK')
         # tornado.log.logging.info(self.kwargs)
         uri = tornado.escape.url_unescape(self.request.uri)
-        result = {r.split('=')[0]: r.split('=')[1] for r in uri.split('?')[1].split('&')}
-        tornado.log.logging.info(result)
+        params = {self.params[r.split('=')[0]] if r.split('=')[0] in self.params.keys(
+        ) else r.split('=')[0]: r.split('=')[1] for r in uri.split('?')[1].split('&')}
+        tornado.log.logging.info(params)
         api_result = await tmtapi.api_request(
+            ('set_request_state',
+             {'order_id': params['order_id'],
+              'state': 0,
+              'phone_type': 1,
+              'state_id': 0,
+              }, ))
+        order_state = await tmtapi.api_request(
+            ('get_order_state',
+             {'order_id': params['order_id']})
+        )
+        tornado.log.logging.info(order_state)
+        order_info = await tmtapi.api_request(
             ('get_info_by_order_id',
-             {'order_id': result['order_id'],
-              'fields': 'DRIVER_TIMECOUNT-SUMM-SUMCITY-'
-              'DISCOUNTEDSUMM-SUMCOUNTRY-SUMIDLETIME-CASHLESS-'
-              'CLIENT_ID-FROMBORDER-DRIVER_PHONE-CREATION_WAY',
-              }))
-        tornado.log.logging.info(api_result)
+             {'order_id': params['order_id'],
+              'fields': ('DRIVER_TIMECOUNT-SUMM-SUMCITY-'
+                         'DISCOUNTEDSUMM-SUMCOUNTRY-SUMIDLETIME-CASHLESS-'
+                         'CLIENT_ID-FROMBORDER-DRIVER_PHONE-CREATION_WAY').lower(), })
+        )
+        order_info.update(order_state)
+        order_info = order_info['data']
+        tornado.log.logging.info(order_info)
+        # TODO: websocket.send(params['name'], api_result)
+        await ev_propagate({params['event'].upper(): order_info, })
 
 
 class WSHandler(tornado.websocket.WebSocketHandler):
     async def on_message(self, message):
         tornado.log.logging.info(message)
         message = json_decode(message)
-        await ev_propagate(self, message)
+        tornado.log.logging.info(message)
+        await ev_propagate(message, self, )
 
     async def open(self):
         WS_CLIENTS.add(self)
