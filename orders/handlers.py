@@ -6,9 +6,9 @@ import asyncio
 import psycopg2 as pg2
 # import aiopg
 import asyncpg
-import settings
+import orders.settings as settings
 # import websocket_cli as wscli
-from settings import logger
+from orders.settings import logger
 
 
 orders = {}
@@ -25,7 +25,7 @@ def event_result(future):
 
 
 @asyncio.coroutine
-def created(event, order_data, ws):
+def created(event, order_data, ws, loop):
     """Фиксация события 'ORDER_CREATED'"""
     with (yield from orders[order_data['order_id']]['semaphore']):
         orders[order_data['order_id']]['events'].append(order_data)
@@ -34,7 +34,7 @@ def created(event, order_data, ws):
 
 
 @asyncio.coroutine
-def completed(event, order_data, ws):
+def completed(event, order_data, ws, loop):
     """Заказ выполнен. Удалить executor для заказа id"""
     with (yield from orders[order_data['order_id']]['semaphore']):
         orders[order_data['order_id']]['events'].append(order_data)
@@ -43,7 +43,7 @@ def completed(event, order_data, ws):
 
 
 @asyncio.coroutine
-def aborted(event, order_data, ws):
+def aborted(event, order_data, ws, loop):
     """Заказ прекращён. Удалить executor для заказа id"""
     with (yield from orders[order_data['order_id']]['semaphore']):
         orders[order_data['order_id']]['events'].append(order_data)
@@ -53,7 +53,7 @@ def aborted(event, order_data, ws):
 
 
 @asyncio.coroutine
-def client_gone(event, order_data, ws):
+def client_gone(event, order_data, ws, loop):
     """Клиент не выходит"""
     with (yield from orders[order_data['order_id']]['semaphore']):
         orders[order_data['order_id']]['events'].append(order_data)
@@ -64,7 +64,7 @@ def client_gone(event, order_data, ws):
 
 
 @asyncio.coroutine
-def accepted(event, order_data, ws):
+def accepted(event, order_data, ws, loop):
     """Заказ принят водителем"""
     with (yield from orders[order_data['order_id']]['semaphore']):
         orders[order_data['order_id']]['events'].append(order_data)
@@ -76,7 +76,7 @@ def accepted(event, order_data, ws):
 
 
 @asyncio.coroutine
-def client_fuck(event, order_data, ws):
+def client_fuck(event, order_data, ws, loop):
     """Клиент не вышел. Удалить executor для заказа id"""
     with (yield from orders[order_data['order_id']]['semaphore']):
         orders[order_data['order_id']]['events'].append(order_data)
@@ -86,7 +86,7 @@ def client_fuck(event, order_data, ws):
 
 
 @asyncio.coroutine
-def callback_delivered(event, order_data, ws):
+def callback_delivered(event, order_data, ws, loop):
     """Отзвон выполнен"""
     with (yield from orders[order_data['order_id']]['semaphore']):
         orders[order_data['order_id']]['events'].append(order_data)
@@ -96,7 +96,7 @@ def callback_delivered(event, order_data, ws):
 
 
 @asyncio.coroutine
-def callback_error(event, order_data, ws):
+def callback_error(event, order_data, ws, loop):
     """Ошибка отзвона"""
     with (yield from orders[order_data['order_id']]['semaphore']):
         last_event = orders[order_data['order_id']]['events'][-1]['event']
@@ -112,7 +112,7 @@ def callback_error(event, order_data, ws):
 
 
 @asyncio.coroutine
-def callback_busy(event, order_data, ws):
+def callback_busy(event, order_data, ws, loop):
     """Занято"""
     with (yield from orders[order_data['order_id']]['semaphore']):
         last_event = orders[order_data['order_id']]['events'][-1]['event']
@@ -128,7 +128,7 @@ def callback_busy(event, order_data, ws):
 
 
 @asyncio.coroutine
-def callback_started(event, order_data, ws):
+def callback_started(event, order_data, ws, loop):
     """Отзвон начат"""
     with (yield from orders[order_data['order_id']]['semaphore']):
         orders[order_data['order_id']]['events'].append(order_data)
@@ -138,7 +138,7 @@ def callback_started(event, order_data, ws):
 
 
 @asyncio.coroutine
-def callback_temporary_error(event, order_data, ws):
+def callback_temporary_error(event, order_data, ws, loop):
     """Времнная ошибка отзвона. Повторить"""
     with (yield from orders[order_data['order_id']]['semaphore']):
         last_event = orders[order_data['order_id']]['events'][-1]['event']
@@ -154,7 +154,7 @@ def callback_temporary_error(event, order_data, ws):
 
 
 @asyncio.coroutine
-def sms_sended(event, order_data, ws):
+def sms_sended(event, order_data, ws, loop):
     """СМС отправлена"""
     with (yield from orders[order_data['order_id']]['semaphore']):
         orders[order_data['order_id']]['events'].append(order_data)
@@ -164,7 +164,7 @@ def sms_sended(event, order_data, ws):
 
 
 @asyncio.coroutine
-def sms_error(event, order_data, ws):
+def sms_error(event, order_data, ws, loop):
     """Ошибка отправки СМС"""
     with (yield from orders[order_data['order_id']]['semaphore']):
         orders[order_data['order_id']]['events'].append(order_data)

@@ -123,8 +123,10 @@ class TMHandler(tornado.web.RequestHandler):
                          'DISCOUNTEDSUMM-SUMCOUNTRY-SUMIDLETIME-CASHLESS-'
                          'CLIENT_ID-FROMBORDER-DRIVER_PHONE-CREATION_WAY').lower(), })
         )
-        order_info.update(order_state)
         order_info = order_info['data']
+        order_info.update(order_state)
+        order_info['phones'] = (order_info['phone_to_callback'][-10:], )
+        del order_info['phone_to_callback']
         tornado.log.logging.info(order_info)
         # TODO: websocket.send(params['name'], api_result)
         await ev_propagate({params['event'].upper(): order_info, })

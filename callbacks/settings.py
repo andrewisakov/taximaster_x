@@ -1,12 +1,15 @@
 #!/usr/bin/python3
 import os
-import logging
+# import logging
 import logger as logger_
 
-WS_SERVER = '127.0.0.1'
+WS_SERVER = 'ws://127.0.0.1:4055/ws'
+WS_TIMEOUT = 10
 
 APP_DIR = os.path.dirname(__file__)
 SQL_DIR = os.path.join(APP_DIR, 'sql')
-logger = logger_.rotating_log(os.path.join(APP_DIR, 'callbacks.log'), 'callbacks', log_level=logging.INFO)
-DNS = 'dbname=taximaster user=taximaster password=taximaster host=192.168.0.100'
+logger = logger_.rotating_log(os.path.join(
+    APP_DIR, 'callbacks.log'), 'callbacks_log')
+DNS = ('dbname=50eb8a3c0e444176ea5139ad5de941cd79daa8b9 user=freeswitch '
+       'password=freeswitch host=127.0.0.1 port=15432')
 FREESWITCH_ESL = {'host': '127.0.0.1', 'port': 12801}

@@ -2,6 +2,7 @@
 import datetime
 import psycopg2
 import asyncio
+import http
 # from concurrent.futures import ThreadPoolExecutor
 from settings import logger
 import websocket_cli as wscli

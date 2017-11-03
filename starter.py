@@ -1,16 +1,14 @@
 #!/usr/bin/python3
+# import argparse
+import sys
 import datetime
 import psycopg2
 import asyncio
 import aiohttp
-import json
-# from concurrent.futures import ThreadPoolExecutor
-from settings import logger
-# import websocket_cli as wscli
-import websockets
-# from websockets.client import WebSocketClientProtocol
-import settings
-import handlers
+
+
+params = ('orders', 'callbacks', 'sms')
+service_name = ''
 
 
 def exception_handler(loop, context):
@@ -23,14 +21,14 @@ async def main(loop):
         try:
             session = aiohttp.ClientSession()
             async with session.ws_connect(url=settings.WS_SERVER) as ws:
-                logger.debug(ws)
+                # logger.debug(ws)
                 await ws.send_json({'SUBSCRIBE': tuple(handlers.EVENTS.keys())})
                 while True:
                     events = await ws.receive_json()
                     for ev, order_data in events.items():
                         ev = ev.upper()
                         logger.debug(ev, order_data)
-                        if ev == 'STOP_ORDERS':
+                        if ev == f'STOP_{service_name}':
                             active = False
                             break
 
@@ -41,20 +39,43 @@ async def main(loop):
                                 'semaphore': asyncio.BoundedSemaphore(1),
                                 'events': []}
                         task = loop.create_task(
-                            handlers.EVENTS[ev][0](ev, order_data, ws))
+                            handlers.EVENTS[ev][0](ev, order_data, ws, loop))
                         task.add_done_callback(handlers.event_result)
                     if not active:
                         break
                 await ws.send_json({'UNSUBSCRIBE': tuple(handlers.EVENTS.keys())})
             session.close()
-            await asyncio.sleep(settings.WS_TIMEOUT)
         except Exception as e:
             logger.error(e.__str__())
+            await asyncio.sleep(settings.WS_TIMEOUT)
 
     await asyncio.sleep(3)
 
 
 if __name__ == '__main__':
+    _exit = False
+    print(sys.argv)
+    if (len(sys.argv) != 0) and (sys.argv[1] in params):
+        service_name = sys.argv[1].upper()
+        if sys.argv[1] == 'orders':
+            from orders.settings import logger
+            import orders.settings as settings
+            import orders.handlers as handlers
+        elif sys.argv[1] == 'callbacks':
+            from callbacks.settings import logger
+            import callbacks.settings as settings
+            import callbacks.handlers as handlers
+        elif sys.argv[1] == 'sms':
+            from sms.settings import logger
+            import sms.settings as settings
+            import sms.handlers as handlers
+        else:
+            _exit = True
+    else:
+        _exit = True
+    if _exit:
+        print('starter.py orders|callbacks|sms')
+        sys.exit(1)
     logger.info('Запуск')
     loop = asyncio.get_event_loop()
     # future = asyncio.Future()

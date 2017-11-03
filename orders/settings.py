@@ -7,5 +7,5 @@ WS_TIMEOUT = 10
 
 APP_DIR = os.path.dirname(__file__)
 SQL_DIR = os.path.join(APP_DIR, 'sql')
-logger = logger_.rotating_log(os.path.join(APP_DIR, 'orders.log'))
+logger = logger_.rotating_log(os.path.join(APP_DIR, 'orders.log'), 'orders_log')
 DNS = 'dbname=taximaster user=taximaster password=taximaster host=192.168.0.100'
