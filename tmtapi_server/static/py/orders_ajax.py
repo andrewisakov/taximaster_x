@@ -28,6 +28,7 @@ def change_order_state(ev):
                     'order_state': ev.target.parent.getElementsByClassName('order_state')[0].value,
                     'order_crew_id': ev.target.parent.getElementsByClassName('crew')[0].value,
                     'order_phone_to_callback': ev.target.parent.getElementsByClassName('phone_to_callback')[0].text,
+                    'order_driver_timecount': ev.target.parent.getElementsByClassName('driver_timecount')[0].value,
                     },
               url='/change_order_state',
               method='post',

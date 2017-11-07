@@ -12,4 +12,5 @@ logger = logger_.rotating_log(os.path.join(
     APP_DIR, 'callbacks.log'), 'callbacks_log')
 DNS = ('dbname=50eb8a3c0e444176ea5139ad5de941cd79daa8b9 user=freeswitch '
        'password=freeswitch host=127.0.0.1 port=15432')
-FREESWITCH_ESL = {'host': '127.0.0.1', 'port': 12801}
+FREESWITCH_ESL = {'host': '127.0.0.1', 'port': 28021}
+LOCAL_CODE = '8362'

@@ -41,9 +41,10 @@ def select_distributor(phone):
     ARGS = (phone[:3], int(phone[3:]), )
     print(f'select_distributor.distributors_cache: {distributors_cache}, {ARGS}')
     distributor = tuple(d[1] for d in tuple(filter(lambda x:
-                               (x[0][0] == ARGS[0]) and
-                               (x[0][1] <= ARGS[1] <= x[0][2]),
-                               distributors_cache.items())))
+                                                   (x[0][0] == ARGS[0]) and
+                                                   (x[0][1] <= ARGS[1]
+                                                    <= x[0][2]),
+                                                   distributors_cache.items())))
     print(f'select_distributor.distributor: {distributor}')
     if not distributor:
         SQL = database.get_query('select_distributor.sql')
@@ -82,7 +83,7 @@ def callback_start(event, bridge_data, ws, loop):
     bridge_data.update(distributors=(distributor, ))
     with (yield from distributors[distributor]):
         events = ['CALLBACK_STARTED', ]
-        task = loop.create_task(freeswitch.bridge_start, (bridge_data, ws, loop))
+        task = loop.create_task(freeswitch.bridge_start(bridge_data, ws, loop))
         task.add_done_callback(freeswitch.callback_done)
         yield from ws.send_json({'CALLBACK_STARTED': bridge_data, })
     return event, events, bridge_data
@@ -96,7 +97,7 @@ def callback_bridge_start(event, bridge_data, ws, loop):
     update.bridge_data(distributors=(distributor0, distributor1))
     with (yield from distributors[distributor0]), (yield from distributors[distributor1]):
         events = ['CALLBACK_BRIDGE_STARTED', ]
-        task = loop.create_task(freeswitch.bridge_start, (bridge_data, ws, loop))
+        task = loop.create_task(freeswitch.bridge_start(bridge_data, ws, loop))
         task.add_done_callback(freeswitch.callback_done)
         yield from ws.send_json({'CALLBACK_BRIDGE_STARTED': bridge_data, })
     return event, events, bridge_data

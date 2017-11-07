@@ -5,11 +5,11 @@ import grp
 import logging
 import logger as logger_
 
-ESL_SERVER = ('127.0.0.1', 2081)
+ESL_SERVER = ('127.0.0.1', 8021)
 
 APP_DIR = os.path.dirname(__file__)
 
-ESL_PROXY = {'host': '0.0.0.0', 'port': 22081}
+ESL_PROXY = {'host': '0.0.0.0', 'port': 28021}
 log_file = os.path.join(APP_DIR, 'esl_proxy.log')
 logger = logger_.rotating_log(log_file, 'esl_proxy', log_level=logging.DEBUG)
 MAX_CALLBACKS = 128

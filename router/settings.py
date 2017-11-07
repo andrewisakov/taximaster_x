@@ -24,3 +24,4 @@ TMAPI = {
 
 
 WS_SERVER = f'localhost:{PORT}'
+PHONE_SHORT = 6

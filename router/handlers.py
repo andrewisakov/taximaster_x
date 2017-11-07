@@ -9,6 +9,7 @@ from tornado import gen
 from tornado.queues import Queue
 from tornado.escape import json_encode
 from tornado.escape import json_decode
+import settings
 import tmtapi
 
 
@@ -93,6 +94,15 @@ class VoiceMessage(tornado.web.RequestHandler):
         tornado.log.logging.info(self.request.body)
 
 
+class TMABConnect(tornado.web.RequestHandler):
+    params = {'startparam1': 'phone0', 'startparam2': 'phone1', }
+    async def get(self, request):
+        self.set_status(200, 'OK')
+        uri = tornado.escape.url_unescape(self.request.uri)
+        # params = 
+        tornado.log.logging.info(uri)
+
+
 class TMHandler(tornado.web.RequestHandler):
     params = {'name': 'event', 'startparm3': 'callback_state',
               'startparm4': 'order_id', 'startparm1': 'phone', }
@@ -100,6 +110,7 @@ class TMHandler(tornado.web.RequestHandler):
     async def get(self, request):
         self.set_status(200, 'OK')
         # tornado.log.logging.info(self.kwargs)
+        tornado.log.logging.info('TMHandler.name: %s' % self.get_argument('name'))
         uri = tornado.escape.url_unescape(self.request.uri)
         params = {self.params[r.split('=')[0]] if r.split('=')[0] in self.params.keys(
         ) else r.split('=')[0]: r.split('=')[1] for r in uri.split('?')[1].split('&')}
@@ -111,25 +122,26 @@ class TMHandler(tornado.web.RequestHandler):
               'phone_type': 1,
               'state_id': 0,
               }, ))
-        order_state = await tmtapi.api_request(
-            ('get_order_state',
-             {'order_id': params['order_id']})
-        )
-        tornado.log.logging.info(order_state)
-        order_info = await tmtapi.api_request(
-            ('get_info_by_order_id',
-             {'order_id': params['order_id'],
-              'fields': ('DRIVER_TIMECOUNT-SUMM-SUMCITY-'
-                         'DISCOUNTEDSUMM-SUMCOUNTRY-SUMIDLETIME-CASHLESS-'
-                         'CLIENT_ID-FROMBORDER-DRIVER_PHONE-CREATION_WAY').lower(), })
-        )
-        order_info = order_info['data']
-        order_info.update(order_state)
-        order_info['phones'] = (order_info['phone_to_callback'][-10:], )
-        del order_info['phone_to_callback']
-        tornado.log.logging.info(order_info)
-        # TODO: websocket.send(params['name'], api_result)
-        await ev_propagate({params['event'].upper(): order_info, })
+        if len(params['phone']) in (settings.PHONE_SHORT, 10):
+            order_state = await tmtapi.api_request(
+                ('get_order_state',
+                 {'order_id': params['order_id']})
+            )
+            tornado.log.logging.info(order_state)
+            order_info = await tmtapi.api_request(
+                ('get_info_by_order_id',
+                 {'order_id': params['order_id'],
+                  'fields': ('DRIVER_TIMECOUNT-SUMM-SUMCITY-'
+                             'DISCOUNTEDSUMM-SUMCOUNTRY-SUMIDLETIME-CASHLESS-'
+                             'CLIENT_ID-FROMBORDER-DRIVER_PHONE-CREATION_WAY').lower(), })
+            )
+            order_info = order_info['data']
+            order_info.update(order_state)
+            order_info['phones'] = (order_info['phone_to_callback'][-10:], )
+            del order_info['phone_to_callback']
+            tornado.log.logging.info(order_info)
+            # TODO: websocket.send(params['name'], api_result)
+            await ev_propagate({params['event'].upper(): order_info, })
 
 
 class WSHandler(tornado.websocket.WebSocketHandler):

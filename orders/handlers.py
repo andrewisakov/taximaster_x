@@ -3,15 +3,18 @@ import os
 # import logging
 import aiohttp
 import asyncio
-import psycopg2 as pg2
+# import psycopg2 as pg2
 # import aiopg
-import asyncpg
+# import asyncpg
+# import fdb
 import orders.settings as settings
 # import websocket_cli as wscli
 from orders.settings import logger
+import orders.database as db
 
 
 orders = {}
+cars = {}
 
 
 def event_result(future):
@@ -22,6 +25,22 @@ def event_result(future):
     if event in ('ORDER_COMPLETED', 'ORDER_ABORTED'):
         del orders[order_data['order_id']]
     logger.info(f'{event}, {events}, {order_data}, {order_events}')
+
+
+@asyncio.coroutine
+def gen_sms(order_data):
+    mark = order_data['mark']
+    model = order_data['model']
+    color = order_data['color']
+    gosnumber = order_data['gosnumber']
+    driver_timecount = order_data['drivertimecount']
+    yield (f'{mark} {model}\n{color}\n{gosnumber}\n{driver_timecount}'
+           '\nРасчёт по таксометру')
+
+
+@asyncio.coroutine
+def gen_message(order_data):
+    return ''
 
 
 @asyncio.coroutine

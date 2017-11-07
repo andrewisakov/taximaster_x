@@ -16,40 +16,50 @@ import settings
 from settings import logger
 
 
-def originate(order_data):
-    with ESL.ESLConnection(*settings.ESLLogin) as e:
-        if e.connected():
-            uuid = e.api("create_uuid").getBody()
-            logger.debug('orgiginate uuid %s' % uuid)
-            originate_pickle = '/tmp/%s' % uuid
-            esl_command = "expand originate"
-            phones = order_data['phones']
-            distributors = order_data['distributors']
-            esl_data = "{origination_uuid=%s,originate_timeout=%s,ignore_early_media=true}sofia/gateway/${distributor(%s)}/%s" % (uuid, timeout, distributors[0], phones[0])
-            if (len(phones) == 2) and (len(distributors) == 2):
-                """Bridge driver and client"""
-                esl_data = ' '.join([esl_data, "sofia/gateway/${distributor(%s)}/%s" % (distributors[1], phones[1])])
-            else:
-                """Callback to client"""
-                with open(originate_pickle, 'wb') as fd:
-                    pickle.dump(obj=order_data, file=fd, protocol=2)
-                    os.fchown(fd, *settings.VOIP_USER)
-                esl_data = ' '.join([esl_data, settings.SIMPLE_CALLBACK])
-            logger.debug('esl_data: %s' % esl_data)
-            res = e.api(esl_command, esl_data.encode('UTF-8'))
-            order_data[u'uuid'] = uuid
-            order_data[u'result'] = json.loads(res.serialize('json'))['_body'].replace('\n', '')
+def originate(originate_data):
+    # logger.debug('originate: {}'.format(originate_data))
+    e = ESL.ESLconnection(*settings.ESLLogin)
+    logger.debug('originate: {}'.format(e))
+    if e.connected():
+        uuid = e.api("create_uuid").getBody()
+        logger.debug('originate uuid %s' % uuid)
+        esl_command = "expand originate"
+        phones = originate_data['phones']
+        distributors = originate_data['distributors']
+        # logger.debug('orgiginate {} {}'.format(phones, distributors))
+        esl_data = "{origination_uuid=%s,originate_timeout=%s,ignore_early_media=true}sofia/gateway/${distributor(%s)}/%s" % (
+            uuid, settings.ESL_TIMEOUT, distributors[0], phones[0])
+        logger.debug('originate {} {}'.format(esl_command, esl_data))
+        if (len(phones) == 2) and (len(distributors) == 2):
+            """Bridge driver and client"""
+            esl_data = ' '.join(
+                [esl_data, "sofia/gateway/${distributor(%s)}/%s" % (distributors[1], phones[1])])
         else:
-            logger.error('do not connect to ')
-    return order_data
+            """Callback to client"""
+            originate_pickle = '/tmp/%s' % uuid
+            with open(originate_pickle, 'wb') as fd:
+                pickle.dump(obj=originate_data, file=fd, protocol=2)
+            os.chown(originate_pickle, *settings.VOIP_USER)
+            esl_data = ' '.join([esl_data, settings.SIMPLE_CALLBACK])
+        logger.debug('originate: {} {}'.format(esl_command, esl_data))
+        res = e.api(esl_command, esl_data.encode('UTF-8'))
+        logger.debug('originate: {}'.format(json.loads(res.serialize('json'))['_body'].replace('\n', '')))
+        originate_data[u'uuid'] = uuid
+        originate_data[u'result'] = json.loads(res.serialize('json'))['_body'].replace('\n', '')
+        e.disconnect()
+    else:
+        logger.error('do not connect to ')
+    return originate_data
 
 
 class OriginateHandler(asyncore.dispatcher_with_send):
     def handle_read(self):
         data = self.recv(8192)
         if data:
-            order_data = pickle.loads(data)  # Нежелание заморачиваться с datetime in json
-            originate_result = originate(order_data)
+            bridge_data = pickle.loads(data)  # Нежелание заморачиваться с datetime in json
+            logger.debug('OriginateHandler: {}'.format(bridge_data))
+            originate_result = originate(bridge_data)
+            logger.debug('OriginateHandler: {}'.format(originate_result))
             data = pickle.dumps(originate_result, protocol=2)
             self.send(data)
 

@@ -8,8 +8,8 @@ from callbacks.settings import logger
 
 
 def callback_done(future):
-    order_data, ws = future.result()
-    code, data = order_data['result'].split(' ')
+    bridge_data, ws = future.result()
+    code, data = bridge_data['result'].split(' ')
     logger.debug(f'freeswitch.originator {code} {data}')
     if code == '-ERR':
         if data == 'USER_BUSY':
@@ -27,18 +27,19 @@ def callback_done(future):
         events = ['CALLBACK_ORIGINATE_DELIVERED', ]
     else:
         events = ['CALLBACK_ORIGINATE_UNKNOW_CALLBACK_CODE', ]
-        order_data['unknown_callback_code'] = (code, data)
+        bridge_data['unknown_callback_code'] = (code, data)
 
     for ev in events.keys():
-        ws.send_json({ev: order_data})
+        ws.send_json({ev: bridge_data})
     logger.info(f'callback done {code} {data}')
 
 
 @asyncio.coroutine
-def bridge_start(bridge_data, ws, loop=None):
+def bridge_start(bridge_data, ws, loop):
     reader, writer = yield from asyncio.open_connection(**settings.FREESWITCH_ESL, loop=loop)
     writer.write(pickle.dumps(bridge_data, protocol=2))
-    data = yield from reader.read_all()
-    order_data = pickle.loads(data)
+    data = yield from reader.read()
+    logger.info(data)
+    bridge_data = pickle.loads(data)
     writer.close()
-    return data, ws
+    return bridge_data, ws

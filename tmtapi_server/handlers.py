@@ -95,9 +95,11 @@ class ChangeOrderState(tornado.web.RequestHandler):
         order = list(filter(lambda x: x['id'] ==
                             data['order_id'], tmtapi.ORDERS))[0]
         order['state'] = data['order_state']
+        order['driver_timecount'] = int(data['order_driver_timecount']) if data['order_driver_timecount'] else 0
         data['order_crew_id'] = int(
             data['order_crew_id']) if data['order_crew_id'] else 0
         order['crew_id'] = data['order_crew_id']
+        order['state_id'] = tmtapi.ORDER_STATES[data['order_state']][1]
         if order['id'] not in tmtapi.ORDER_H:
             tmtapi.ORDER_H[order['id']] = []
         tmtapi.ORDER_H[data['order_id']].append((datetime.datetime.now(),
@@ -167,7 +169,7 @@ class get_order_state(tornado.web.RequestHandler):
         driver = list(filter(lambda x: x['id'] == crew['driver_id'], tmtapi.DRIVERS))[0]
         order_state = {}
         order_state = {
-            'order_id': order_id, 'state_id': order['state'],
+            'order_id': order_id, 'state_id': order['state_id'],
             'crew_id': order['crew_id'],
             'driver_id': driver['id'], 'car_id': car['id'],
             'start_time': order['starttime'],
@@ -177,6 +179,7 @@ class get_order_state(tornado.web.RequestHandler):
             'phone': order['phone_to_callback'],
             'client_id': order['client_id'],
             'order_crew_group_id': 1,
+            'driver_timecount': int(order['driver_timecount']) if order['driver_timecount'] else 0,
             'car_mark': car['mark'], 'car_model': car['model'],
             'car_color': car['color'], 'car_number': car['gosnumber'],
             'confirmed': 'confirmed_by_driver',
@@ -205,6 +208,7 @@ class set_request_state(tornado.web.RequestHandler):
         callback_state = int(params['state'])
         order = list(filter(lambda x: x['id'] == order_id, tmtapi.ORDERS))[0]
         order['callback_state'] = callback_state
+        self.write('<response><code>0</code><descr>OK</descr></response>')
 
 
 class TM_TAPI(tornado.web.RequestHandler):

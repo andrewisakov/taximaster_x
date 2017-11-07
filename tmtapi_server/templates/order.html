@@ -27,8 +27,9 @@
             {% else %}
                 {{''}}
             {% end %}
-            value="{{ state }}">{{ order_states[state] }}</option>
+            value="{{ state }}">{{ order_states[state][0] }}</option>
         {% end %}
     </select>
+    <input class="order_col driver_timecount" type="text" name="driver_timecount_{{ order['id'] }}" value="{{ order['driver_timecount'] }}">
     <input class="order_col button change_state" type="button" value="Изменить">
 </div>

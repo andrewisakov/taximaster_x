@@ -106,3 +106,4 @@ lib64/
 .vscode/
 orders/orders.log*
 esl_proxy/esl_proxy.pid
+callbacks/callbacks.log*
