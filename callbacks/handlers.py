@@ -79,14 +79,17 @@ def event_result(future):
 
 @asyncio.coroutine
 def callback_start(event, bridge_data, ws, loop):
-    distributor = yield from select_distributor(bridge_data['phones'][0])
-    bridge_data.update(distributors=(distributor, ))
-    with (yield from distributors[distributor]):
-        events = ['CALLBACK_STARTED', ]
-        task = loop.create_task(freeswitch.bridge_start(bridge_data, ws, loop))
-        task.add_done_callback(freeswitch.callback_done)
-        yield from ws.send_json({'CALLBACK_STARTED': bridge_data, })
-    return event, events, bridge_data
+    if len(bridge_data['phones'][0]) in settings.PHONE_LENGTH:
+        bridge_data['phones'][0] = (settings.LOCAL_CODE + bridge_data['phones'][0]) if len(
+            bridge_data['phones'][0]) < 10 else bridge_data['phones'][0]
+        distributor = yield from select_distributor(bridge_data['phones'][0])
+        bridge_data.update(distributors=(distributor, ))
+        with (yield from distributors[distributor]):
+            events = ['CALLBACK_STARTED', ]
+            task = loop.create_task(freeswitch.bridge_start(bridge_data, ws, loop))
+            task.add_done_callback(freeswitch.callback_done)
+            yield from ws.send_json({'CALLBACK_STARTED': bridge_data, })
+        return event, events, bridge_data
 
 
 @asyncio.coroutine

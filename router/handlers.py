@@ -110,7 +110,7 @@ class TMHandler(tornado.web.RequestHandler):
     async def get(self, request):
         self.set_status(200, 'OK')
         # tornado.log.logging.info(self.kwargs)
-        tornado.log.logging.info('TMHandler.name: %s' % self.get_argument('name'))
+        # tornado.log.logging.info('TMHandler.name: %s' % self.get_argument('name'))
         uri = tornado.escape.url_unescape(self.request.uri)
         params = {self.params[r.split('=')[0]] if r.split('=')[0] in self.params.keys(
         ) else r.split('=')[0]: r.split('=')[1] for r in uri.split('?')[1].split('&')}
@@ -122,6 +122,7 @@ class TMHandler(tornado.web.RequestHandler):
               'phone_type': 1,
               'state_id': 0,
               }, ))
+        params['phone'] = params['phone'][-10:]
         if len(params['phone']) in (settings.PHONE_SHORT, 10):
             order_state = await tmtapi.api_request(
                 ('get_order_state',
