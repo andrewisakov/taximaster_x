@@ -34,3 +34,6 @@ def select_distributor(phone):
 def send_sms(event, bridge_data, ws, loop):
     return event, events, bridge_data
 
+
+EVENTS = {'SEND_SMS': (send_sms,),
+}
