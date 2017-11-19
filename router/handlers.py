@@ -9,6 +9,7 @@ from tornado import gen
 from tornado.queues import Queue
 from tornado.escape import json_encode
 from tornado.escape import json_decode
+import database
 import settings
 import tmtapi
 
@@ -101,6 +102,36 @@ class TMABConnect(tornado.web.RequestHandler):
         uri = tornado.escape.url_unescape(self.request.uri)
         # params = 
         tornado.log.logging.info(uri)
+
+
+class SNMP(tornado.web.RequestHandler):
+    SUPPORTED_METHODS = ('POST',)
+
+    def check_xsrf_cookie(self):
+        pass
+
+    def json_serial(self, data):
+        if isinstance(data, (datetime.datetime, )):
+            return data.__str__()
+        return data
+
+    async def post(self):
+        self.set_status(200, 'OK')
+        tornado.log.logging.info(self.request.body)
+        snmp_event = json.loads(self.request.body)
+        data = {}
+        event = snmp_event['event']
+        data[event] = snmp_event
+        tornado.log.logging.info(data)
+        await ev_propagate(data)
+
+
+class Devices(tornado.web.RequestHandler):
+    async def get(self):
+        # tornado.log.logging.info(self.request.body)
+        devices = await database.load_devices()
+        tornado.log.logging.info(devices)
+        self.render('devices.html', devices=devices)
 
 
 class TMHandler(tornado.web.RequestHandler):

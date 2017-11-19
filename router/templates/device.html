@@ -1,0 +1,6 @@
+<div class="device">
+    <div class="device address">
+        {{ device['address'] }}:{{ (' ' + device['name']).split(' ')[-1] }}
+    </div>
+    {% include 'channels.html' %}
+</div>

@@ -12,13 +12,15 @@ from settings import logger
 
 
 async def request_channel(address, cmd, login='user', passwd='user', realm='kts_voip', data=None):
-    url = 'http://%s/%s' % (address, cmd)
+    url = f'http://{address}/{cmd}'
     if data is None:
         response = requests.get(url, auth=HTTPDigestAuth(
             login, passwd), verify=False, stream=True)
-    else:
+    elif isinstance(data, (dict,)):
         response = requests.post(url, auth=HTTPDigestAuth(
             login, passwd), verify=False, stream=True, data=data)
+    else:
+        response = None
     logger.debug(f'{response.content}')
 
     return response
@@ -79,7 +81,7 @@ async def get_smslist(address, login='user', passwd='user', realm='kts_voip'):
                                     realm=realm
                                     )
     ok, smslist = smslist.ok, smslist.json() if smslist.ok else {}
-    print(ok, smslist)
+    logger.debug(ok, smslist)
     return ok, smslist
 
 

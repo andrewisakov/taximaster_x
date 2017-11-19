@@ -32,6 +32,8 @@ def routes_setup():
         # (r'/sms_error', sms.SMSError),
         (r'/gen/message', handlers.SMSMessage),
         (r'/gen/phrase', handlers.VoiceMessage),
+        (r'/snmp', handlers.SNMP),
+        (r'/devices', handlers.Devices),
         (r'/(execsvcscript.*)', handlers.TMHandler),
         # (r'/(execsvcscript\?name\=TMABConnect.*)', handlers.TMABConnect),  # /execsvcscript?name=TMABConnect&startparam1=TEL1&startparam2=TEL2
         ]

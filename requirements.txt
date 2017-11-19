@@ -7,3 +7,5 @@ asyncws
 aiopg
 python-daemon
 dicttoxml
+pysnmp
+pygresql

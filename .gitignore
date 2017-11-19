@@ -107,3 +107,7 @@ lib64/
 orders/orders.log*
 esl_proxy/esl_proxy.pid
 callbacks/callbacks.log*
+*.bin
+.kdev4/*
+*.kdev4
+*.py~

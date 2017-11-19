@@ -1,0 +1,29 @@
+.device {
+    display: inline-block;
+    width: 174px;
+    /* border: solid 1px red; */
+    margin: 1px;
+    padding: 2px;
+    background: white;
+}
+.address {
+    display: block;
+    border: none;
+    background: none;
+    /* width: 192px; */
+    font-size: 12px;
+}
+.channels {
+    display: block;
+    /* width: 20px; */
+    /* border: solid 1px lightblue; */
+}
+.channel {
+    display: inline-block;
+    /* border: solid 1px lightblue; */
+    width: 16px;
+    height: 16px;
+    margin: 1px;
+    background: lightblue;
+    font-size: 8px;
+}

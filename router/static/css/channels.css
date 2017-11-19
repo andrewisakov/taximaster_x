@@ -1,0 +1,48 @@
+.gsm_unregistered {
+    background: lightblue;
+}
+.gsm_registered_home {
+    background: lightblue;
+}
+.gsm_search {
+    background: lightblue;
+}
+.gsm_registration_locked {
+    background: lightblue;
+}
+.gsm_registered_unknown {
+    background: lightblue;
+}
+.gsm_registered_roaming {
+    background: lightblue;
+}
+.sms_incoming {
+    background: lightblue;
+}
+.sms_broadcast {
+    background: lightblue;
+}
+.sms_delivered {
+    background: lightblue;
+}
+.sms_unknown {
+    background: lightblue;
+}
+.sip_incoming {
+    background: blue;
+}
+.sip_invite {
+    background: blue;
+}
+.sip_early {
+    background: black;
+}
+.sip_connecting {
+    background: blueviolet;
+}
+.sip_confirmed {
+    background: orangered;
+}
+.sip_disconnected{
+    background: lightblue;
+}
