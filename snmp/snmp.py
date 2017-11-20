@@ -35,7 +35,7 @@ EVENTS = {
                       #   9: ('state', str),
                       10: ('state_descr', str),
                       11: ('event', str),
-                      'events': {1: 'SIP_INCOMING', 2: 'SIP_INVITE', 3: 'SIP_EARLY', 4: 'SIP_CONNECTING', 5: 'SIP_CONFIRMED', 6: 'SIP_DISCONNCTED', },
+                      'events': {1: 'SIP_INCOMING', 2: 'SIP_INVITE', 3: 'SIP_EARLY', 4: 'SIP_CONNECTING', 5: 'SIP_CONFIRMED', 6: 'SIP_DISCONNECTED', },
                       },
 }
 EVENTS.update({GSM_SMS_FLAG[1]: EVENTS[GSM_SMS_FLAG[0]]})

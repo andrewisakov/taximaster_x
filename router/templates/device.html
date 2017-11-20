@@ -1,5 +1,5 @@
-<div class="device">
-    <div class="device address">
+<div class="device" id="{{ device['address'] }}">
+    <div class="device address" >
         {{ device['address'] }}:{{ (' ' + device['name']).split(' ')[-1] }}
     </div>
     {% include 'channels.html' %}

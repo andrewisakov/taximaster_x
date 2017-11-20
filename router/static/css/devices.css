@@ -20,10 +20,12 @@
 }
 .channel {
     display: inline-block;
-    /* border: solid 1px lightblue; */
+    font-size: 8px;
+    /* border: solid 1px none; */
     width: 16px;
     height: 16px;
     margin: 1px;
-    background: lightblue;
-    font-size: 8px;
+    background: lightgray;
+    border-radius: 50%;
+    box-shadow: 2px 2px 0 0 none;
 }

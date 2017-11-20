@@ -22,7 +22,7 @@ WS_CLIENTS = set()
 def ev_subscribe(subscriber, events):
     for ev in events:
         if ev not in EVENTS.keys():
-            EVENTS[ev] = set()
+            EVENTS[ev.upper()] = set()
         EVENTS[ev.upper()].add(subscriber)
         tornado.log.logging.info(f'{subscriber} подписался на {ev.upper()}')
 
@@ -31,7 +31,7 @@ def ev_unsubscribe(subscriber, *args):
     for ev in EVENTS.keys():
         if ev not in ('SUBSCRIBE', 'UNSUBSCRIBE'):
             tornado.log.logging.info(f'ev_unsubscribe {ev}, {EVENTS[ev]}')
-            EVENTS[ev].discard(subscriber)
+            EVENTS[ev.upper()].discard(subscriber)
             tornado.log.logging.info(f'ev_unsubscribe {ev}, {EVENTS[ev]}')
 
 
@@ -139,13 +139,14 @@ class TMHandler(tornado.web.RequestHandler):
               'startparm4': 'order_id', 'startparm1': 'phone', }
 
     async def get(self, request):
-        self.set_status(200, 'OK')
+        self.set_status(200, 'OK')  # Умиротворить ТМСервер
         # tornado.log.logging.info(self.kwargs)
         # tornado.log.logging.info('TMHandler.name: %s' % self.get_argument('name'))
         uri = tornado.escape.url_unescape(self.request.uri)
         params = {self.params[r.split('=')[0]] if r.split('=')[0] in self.params.keys(
         ) else r.split('=')[0]: r.split('=')[1] for r in uri.split('?')[1].split('&')}
         tornado.log.logging.info(params)
+        # Умиротворить индикатор отзвона, ибо звонить на самом деле пока ещё не начали...
         api_result = await tmtapi.api_request(
             ('set_request_state',
              {'order_id': params['order_id'],
@@ -155,6 +156,7 @@ class TMHandler(tornado.web.RequestHandler):
               }, ))
         params['phone'] = params['phone'][-10:]
         if len(params['phone']) in (settings.PHONE_SHORT, 10):
+            # Получить подробности по заказу
             order_state = await tmtapi.api_request(
                 ('get_order_state',
                  {'order_id': params['order_id']})
@@ -168,11 +170,11 @@ class TMHandler(tornado.web.RequestHandler):
                              'CLIENT_ID-FROMBORDER-DRIVER_PHONE-CREATION_WAY').lower(), })
             )
             order_info = order_info['data']
+            # Консолидировать подробности по заказу
             order_info.update(order_state)
             order_info['phones'] = (order_info['phone_to_callback'][-10:], )
             del order_info['phone_to_callback']
             tornado.log.logging.info(order_info)
-            # TODO: websocket.send(params['name'], api_result)
             await ev_propagate({params['event'].upper(): order_info, })
 
 

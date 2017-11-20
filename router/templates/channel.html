@@ -1,3 +1,5 @@
-<div class='channel' title="{{ channel['id'] }}:{{ channel['phone'] }}" >
+<div class='{{ channel['port'] }} channel'
+    id="{{ device['address'] }}.{{ channel['port'] }}"
+    title="{{ channel['id'] }}:{{ channel['phone'] }}" >
     {{ channel['port'] }}
 </div>

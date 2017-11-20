@@ -1,48 +1,66 @@
 .gsm_unregistered {
-    background: lightblue;
+    background: blue;
+    box-shadow: 0 0 5px 2px blue;
 }
 .gsm_registered_home {
-    background: lightblue;
+    background: lightskyblue;
+    box-shadow: 0 0 5px 2px blue;
 }
 .gsm_search {
-    background: lightblue;
+    background: blueviolet;
+    box-shadow: 0 0 5px 2px blue;
 }
 .gsm_registration_locked {
-    background: lightblue;
+    background: gray;
+    box-shadow: 0 0 5px 2px blue;
 }
 .gsm_registered_unknown {
-    background: lightblue;
+    background: greenyellow;
+    box-shadow: 0 0 5px 2px blue;
 }
 .gsm_registered_roaming {
-    background: lightblue;
+    background: greenyellow;
+    box-shadow: 0 0 5px 2px blue;
 }
+
 .sms_incoming {
-    background: lightblue;
+    background: goldenrod;
+    box-shadow: 0 0 5px 2px gold;
 }
 .sms_broadcast {
-    background: lightblue;
+    background: orangered;
+    box-shadow: 0 0 5px 2px gold;
 }
 .sms_delivered {
-    background: lightblue;
+    background: greenyellow;
+    box-shadow: 0 0 5px 2px gold;
 }
 .sms_unknown {
-    background: lightblue;
+    background: orange;
+    box-shadow: 0 0 5px 2px gold;
 }
+
 .sip_incoming {
-    background: blue;
+    background: greenyellow;
+    box-shadow: 0 0 5px 2px green;
 }
 .sip_invite {
-    background: blue;
+    background: green;
+    box-shadow: 0 0 5px 2px green;
 }
 .sip_early {
-    background: black;
+    background: green;
+    box-shadow: 0 0 5px 2px green;
 }
 .sip_connecting {
-    background: blueviolet;
+    background: lightgreen;
+    box-shadow: 0 0 5px 2px green;
 }
 .sip_confirmed {
-    background: orangered;
+    background: lightblue;
+    box-shadow: 0 0 5px 2px green;
 }
 .sip_disconnected{
-    background: lightblue;
+    background: lightslategray;
+    box-shadow: 0 0 5px 2px green;
 }
