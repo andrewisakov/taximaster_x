@@ -57,10 +57,11 @@ def on_message(ev):
     for event, data in json.loads(ev.data).items():
         el_id = '%s.%s' % (data['header']['address'], data['channel'])
         el = doc.getElementById(el_id)
-        _class = set(el.classList) & event_classes
-        if _class:
-            el.classList.remove(tuple(_class)[0])
-        el.classList.add(event.lower())
+        if el:
+            _class = tuple(set(el.classList) & event_classes)
+            if _class:
+                el.classList.remove(_class[0])
+            el.classList.add(event.lower())
         # print([c for c in el.classList])
 
 

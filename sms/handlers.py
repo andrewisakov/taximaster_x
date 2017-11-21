@@ -27,14 +27,27 @@ def event_result(future):
 
 @asyncio.coroutine
 def select_distributor(phone):
-    pass
+    address, channel = '0', 0
+    return address, channel
 
 
 @asyncio.coroutine
 def send_sms(event, bridge_data, ws, loop):
+    address, channel = await select_distributor(bridge_data['phones'][0])
+    result = await kts.send_sms(address, channel, bridge_data['phones'][0], bridge_data['message'])
+    # TODO: Записать в БД
+    events = []
+    return event, events, bridge_data
+
+
+@asyncio.coroutine
+def sms_delivered(event, bridge_data, ws, loop):
+    # TODO: Записать в БД
+    events = []
     return event, events, bridge_data
 
 
 EVENTS = {
     'SEND_SMS': (send_sms,),
+    'SMS_DELIVERED': (sms_delivered,)
 }
