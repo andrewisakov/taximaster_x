@@ -18,7 +18,7 @@ db = pg2.connect(settings.DNS)
 
 def event_result(future):
     """Событие обработано, дальнейшие действия"""
-    event, events, bridge_data = future.result()
+    event, events, bridge_data, ws = future.result()
     print(f'event_result: {event}, {events}, {bridge_data}')
     # TODO: Отправка events в websocket
 
@@ -33,18 +33,24 @@ def select_distributor(phone):
 
 @asyncio.coroutine
 def send_sms(event, bridge_data, ws, loop):
-    address, channel = await select_distributor(bridge_data['phones'][0])
-    result = await kts.send_sms(address, channel, bridge_data['phones'][0], bridge_data['message'])
-    # TODO: Записать в БД
+    bridge_data['phones'][0] = bridge_data['phones'][0][:-10]
+    if len(bridge_data['phones'][0][:-10]) == settings.PHONE_LENGTH:
+        address, channel = await select_distributor(bridge_data['phones'][0])
+        if (address, channel) and (bridge_data['phones'][0] != '8'):
+            result = await kts.send_sms(address, channel,
+                                        settings.REGIO_CODE +
+                                        bridge_data['phones'][0],
+                                        bridge_data['message'])
+        # TODO: Записать в БД
     events = []
-    return event, events, bridge_data
+    return event, events, bridge_data, ws
 
 
 @asyncio.coroutine
 def sms_delivered(event, bridge_data, ws, loop):
     # TODO: Записать в БД
     events = []
-    return event, events, bridge_data
+    return event, events, bridge_data, ws
 
 
 EVENTS = {

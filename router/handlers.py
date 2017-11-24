@@ -98,10 +98,13 @@ class VoiceMessage(tornado.web.RequestHandler):
 class TMABConnect(tornado.web.RequestHandler):
     params = {'startparam1': 'phone0', 'startparam2': 'phone1', }
     async def get(self, request):
-        self.set_status(200, 'OK')
+        self.set_status(200, 'OK')  # Умиротворить ТМСервер
         uri = tornado.escape.url_unescape(self.request.uri)
-        # params = 
         tornado.log.logging.info(uri)
+        params = {self.params[r.split('=')[0]] if r.split('=')[0] in self.params.keys(
+        ) else r.split('=')[0]: r.split('=')[1] for r in uri.split('?')[1].split('&')}
+        tornado.log.logging.info(params)
+        ev_propagate({'CALLBACK_BRIDGE_START': params, })
 
 
 class SNMP(tornado.web.RequestHandler):
@@ -155,27 +158,26 @@ class TMHandler(tornado.web.RequestHandler):
               'state_id': 0,
               }, ))
         params['phone'] = params['phone'][-10:]
-        if len(params['phone']) in (settings.PHONE_SHORT, 10):
-            # Получить подробности по заказу
-            order_state = await tmtapi.api_request(
-                ('get_order_state',
-                 {'order_id': params['order_id']})
-            )
-            tornado.log.logging.info(order_state)
-            order_info = await tmtapi.api_request(
-                ('get_info_by_order_id',
-                 {'order_id': params['order_id'],
-                  'fields': ('DRIVER_TIMECOUNT-SUMM-SUMCITY-'
-                             'DISCOUNTEDSUMM-SUMCOUNTRY-SUMIDLETIME-CASHLESS-'
-                             'CLIENT_ID-FROMBORDER-DRIVER_PHONE-CREATION_WAY').lower(), })
-            )
-            order_info = order_info['data']
-            # Консолидировать подробности по заказу
-            order_info.update(order_state)
-            order_info['phones'] = (order_info['phone_to_callback'][-10:], )
-            del order_info['phone_to_callback']
-            tornado.log.logging.info(order_info)
-            await ev_propagate({params['event'].upper(): order_info, })
+        # Получить подробности по заказу
+        order_state = await tmtapi.api_request(
+            ('get_order_state',
+                {'order_id': params['order_id']})
+        )
+        tornado.log.logging.info(order_state)
+        order_info = await tmtapi.api_request(
+            ('get_info_by_order_id',
+                {'order_id': params['order_id'],
+                 'fields': ('DRIVER_TIMECOUNT-SUMM-SUMCITY-'
+                            'DISCOUNTEDSUMM-SUMCOUNTRY-SUMIDLETIME-CASHLESS-'
+                            'CLIENT_ID-FROMBORDER-DRIVER_PHONE-CREATION_WAY').lower(), })
+        )
+        order_info = order_info['data']
+        # Консолидировать подробности по заказу
+        order_info.update(order_state)
+        order_info['phones'] = (order_info['phone_to_callback'][-10:], )
+        del order_info['phone_to_callback']
+        tornado.log.logging.info(order_info)
+        await ev_propagate({params['event'].upper(): order_info, })
 
 
 class WSHandler(tornado.websocket.WebSocketHandler):

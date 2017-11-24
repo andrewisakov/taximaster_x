@@ -1,4 +1,4 @@
-select dst.name, dst.cut_code, dst.id, dst.range_a, dst.range_b
+select dst.name, dst.cut_code, dst.id, roma.range_a, roma.range_b
 from routes_mask roma
 join operators op on (op.id=roma.operator_id)
 left join distributors dst on (dst.id=op.distributor_id)

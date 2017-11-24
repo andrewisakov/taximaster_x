@@ -55,7 +55,7 @@ async def main(loop):
 if __name__ == '__main__':
     _exit = False
     print(sys.argv)
-    if (len(sys.argv) != 0) and (sys.argv[1] in params):
+    if (len(sys.argv) != 1) and (sys.argv[1] in params):
         service_name = sys.argv[1].upper()
         if sys.argv[1] == 'orders':
             from orders.settings import logger

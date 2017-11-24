@@ -1,7 +1,0 @@
-2017-10-10 11:18:10,689 originate_proxy [69] DEBUG incoming connection from (<socket._socketobject object at 0x7fa476cf46e0>, ('127.0.0.1', 40568))
-2017-10-10 11:19:18,013 originate_proxy [69] DEBUG incoming connection from (<socket._socketobject object at 0x7fa476cf46e0>, ('127.0.0.1', 40570))
-2017-10-10 11:19:19,862 originate_proxy [50] DEBUG dksfjsdklfjksdjflksdfsdfsdf
-
-2017-10-10 11:19:33,756 originate_proxy [69] DEBUG incoming connection from (<socket._socketobject object at 0x7fa476cf46e0>, ('127.0.0.1', 40576))
-2017-10-10 11:19:36,554 originate_proxy [50] DEBUG lkfgldkfgldkgdfgdfgdfg
-

@@ -5,11 +5,11 @@ import orders.settings as settings
 from orders.settings import logger
 
 
-colors = {'acquire': asyncio.BoundedSemaphore(1),}
-marks = {'acquire': asyncio.BoundedSemaphore(1),}
-models = {'acquire': asyncio.BoundedSemaphore(1),}
-order_states = {'acquire': asyncio.BoundedSemaphore(1),}
-greetings = {'acquire': asyncio.BoundedSemaphore(1),}  # {'order_state': ''}
+colors = {'acquire': asyncio.BoundedSemaphore(1), }
+marks = {'acquire': asyncio.BoundedSemaphore(1), }
+models = {'acquire': asyncio.BoundedSemaphore(1), }
+order_states = {'acquire': asyncio.BoundedSemaphore(1), }
+greetings = {'acquire': asyncio.BoundedSemaphore(1), }  # {'order_state': ''}
 
 
 conn = fdb.connect(**settings.FDB)
@@ -37,7 +37,8 @@ def get_greeting(order_state):
             yield greetings[order_state]
         else:
             try:
-                data = yield from get_query('select name, description from asterisk_sounds where (sound_type=4) and (description is not null)')
+                data = yield from get_sounds('select name, description from asterisk_sounds where (sound_type=4) and (description is not null)')
+                logger.info(f'get_greeting: {data}')
                 greetings.update(data)
                 yield greetings[order_state]
             except Exception as e:
@@ -75,16 +76,15 @@ def get_model(car_mark, car_model):
         yield ''
 
 
-
 @asyncio.coroutine
 def get_mark(car_mark):
-    car_marks = car_marks.upper()
+    car_mark = car_mark.upper()
     with marks['acquire']:
         if car_mark in marks.keys():
             yield marks[car_mark]
         else:
             try:
-                data = yield from get_query('select name, sound_file from asterisk_sounds where (sound_type=0) and (sound_file is not null)')
+                data = yield from get_sounds('select name, sound_file from asterisk_sounds where (sound_type=0) and (sound_file is not null)')
                 marks.update(data)
                 yield marks[car_mark]
             except Exception as e:
@@ -100,7 +100,7 @@ def get_color(car_color):
             yield colors[car_color]
         else:
             try:
-                data = yield from get_query('select name, sound_file from asterisk_sounds where (sound_type=1) and (sound_file is not null)')
+                data = yield from get_sounds('select name, sound_file from asterisk_sounds where (sound_type=1) and (sound_file is not null)')
                 colors.update(data)
                 yield colors[car_color]
             except Exception as e:
@@ -115,7 +115,7 @@ def get_gosnumber(gosnumber):
         gn.append(f'tm{gosnumber[0]}00' if gosnumber[0] != '0' else 'tm0')
         if gosnumber[1] == '1':  # 10..19
             gn.append(f'tm{gosnumber[1:]}')
-        elif gosnumber[1] == '0': # <10
+        elif gosnumber[1] == '0':  # <10
             gn.append(f'tm{gosnumber[2]}' if gosnumber[0] != '0' else f'tm0&tm{gosnumber[2]}')
         else:
             gn.append(f'tm{gosnumber[1]}0')
@@ -134,4 +134,4 @@ def get_gosnumber(gosnumber):
                     gn.append(f'tm{g[1]}')
     else:
         yield ''
-    yield '&'.join(gosnumber)
+    yield ('&'.join(gosnumber))
