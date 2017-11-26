@@ -1,5 +1,5 @@
 tornado
-psycopg2
+#psycopg2
 fdb
 websockets
 asyncio
@@ -8,4 +8,5 @@ aiopg
 python-daemon
 dicttoxml
 pysnmp
-pygresql
+#pygresql
+aiohttp_autoreload

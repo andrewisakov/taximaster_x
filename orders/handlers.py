@@ -75,7 +75,7 @@ def aborted(event, order_data, ws, loop):
 def client_gone(event, order_data, ws, loop):
     """Клиент не выходит"""
     events = []
-    order_data['phones'] = normailze_phones(order_data['phones'])
+    # order_data['phones'] = normailze_phones(order_data['phones'])
     if order_data['phones']:
         with (yield from orders[order_data['order_id']]['semaphore']):
             orders[order_data['order_id']]['events'].append(order_data)
@@ -104,7 +104,7 @@ def accepted(event, order_data, ws, loop):
 def client_fuck(event, order_data, ws, loop):
     """Клиент не вышел. Удалить executor для заказа id"""
     events = []
-    order_data['phones'] = normailze_phones(order_data['phones'])
+    # order_data['phones'] = normailze_phones(order_data['phones'])
     if order_data['phones']:
         with (yield from orders[order_data['order_id']]['semaphore']):
             orders[order_data['order_id']]['events'].append(order_data)

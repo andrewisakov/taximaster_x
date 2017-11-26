@@ -111,3 +111,4 @@ callbacks/callbacks.log*
 .kdev4/*
 *.kdev4
 *.py~
+distributor/distributor.log.*
