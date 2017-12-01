@@ -20,12 +20,16 @@ async def close_pg(app):
 
 
 loop = asyncio.get_event_loop()
-app = web.Application(loop=loop, logger=settings.logger_, middlewares=[toolbar_middleware_factory])
+app = web.Application(loop=loop, logger=settings.logger_,
+                      middlewares=[toolbar_middleware_factory])
 aiohttp_debugtoolbar.setup(app)
-app['postgres'] =loop.run_until_complete(init_pg()) 
+app['postgres'] = loop.run_until_complete(init_pg())
 app.on_cleanup.append(close_pg)
-app.router.add_get('/distributor/{phone:\d+}', handlers.distributor)
+app.router.add_get('/distributor/{phone:\d+}/{lock:\d{1}}', handlers.distributor)
+app.router.add_get('/unlock/{distributor:\w+}', handlers.distributor_unlock)
 app.router.add_get('/smsc/{phone:\d+}', handlers.smsc)
+app.router.add_get('/drop', handlers.drop_cache)
+app.router.add_get('/show', handlers.show_cache)
 # web.run(app)
 if settings.DEBUG:
     aiohttp_autoreload.start()

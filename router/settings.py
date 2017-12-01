@@ -17,13 +17,6 @@ settings = {
 }
 
 
-TMAPI = {
-    'host': '127.0.0.1',  # ip сервера TM
-    'port': 8089,  # порт
-    'sign': '1292',  # соль
-        }
-
-
 WS_SERVER = f'localhost:{PORT}'
 PHONE_SHORT = 6
 

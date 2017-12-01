@@ -24,31 +24,43 @@ def event_result(future):
 
 
 @asyncio.coroutine
+def select_distributor(phone):
+    with (yield from aiohttp.ClientSession()) as client:
+        with (yield from client.get(f'{settings.DISTRIBUTOR}/distributor/{phone}/1')) as resp:
+            distributor = yield from resp.json()
+            phone = distributor['phone'] if distributor else None
+            distributor = distributor['distributor'] if distributor else None
+    return distributor, phone
+
+
+@asyncio.coroutine
 def callback_start(event, bridge_data, ws, loop):
     phone = bridge_data['phones'][0][-10:]
-    print(dir())
+    events = []
     if len(phone) in distributor_settings.PHONE_LENGTH:
-        # phone = (distributor_settings.LOCAL_CODE + phone) if len(phone) < max(distributor_settings.PHONE_LENGTH) else phone
-        distributor, phone = yield from distributor_.get_distributor(phone)
-        bridge_data.update(distributors=(distributor, ))
-        bridge_data['phones'] = (phone, )
+        distributor, phone = yield from select_distributor(phone)
         logger.info(f'{phone} {distributor}')
-        with (yield from distributor_.distributors[distributor]):
-            events = ['CALLBACK_STARTED', ]
+        if distributor or phone:
+            bridge_data.update(distributors=(distributor, ))
+            bridge_data.update(phones=(phone, ))
+            events = ['CALLBACK_ORIGINATE_STARTED', ]
             task = loop.create_task(freeswitch.bridge_start(bridge_data, ws, loop))
             task.add_done_callback(freeswitch.callback_done)
-            yield from ws.send_json({'CALLBACK_STARTED': bridge_data, })
-        return event, events, bridge_data
+            yield from ws.send_json({'CALLBACK_ORIGINATE_STARTED': bridge_data, })
+    return event, events, bridge_data
 
 
 @asyncio.coroutine
 def callback_bridge_start(event, bridge_data, ws, loop):
-    distributor0, phone0 = yield from distributor_.database.get_distributor(phone0)
-    distributor1, phone0 = yield from distributor_.database.select_distributor(phone1)
-    update.bridge_data(distributors=(distributor0, distributor1))
-    update.bridge_data(phones=(phone0, phone1))
-    with (yield from distributor_.database.distributors[distributor0]),\
-         (yield from distributor_.database.distributors[distributor1]):
+    events = []
+    bridge_data['distributors'] = tuple()
+    phones, bridge_data['phones'] = bridge_data['phones'], tuple()
+    for phone in phones:
+        distributor, phone = yield from select_distributor(phone)
+        if distributor and phone:
+            bridge_data['distributors'] += (distributor, )
+            bridge_data['phones'] += (phone, )
+    if len(bridge_data['distributors']) > 1:
         events = ['CALLBACK_BRIDGE_STARTED', ]
         task = loop.create_task(freeswitch.bridge_start(bridge_data, ws, loop))
         task.add_done_callback(freeswitch.callback_done)
@@ -61,7 +73,7 @@ def init():
 
 
 EVENTS = {
-    'CALLBACK_START': (callback_start, ),
+    'CALLBACK_ORIGINATE_START': (callback_start, ),
     'CALLBACK_BRIDGE_START': (callback_bridge_start, ),
     # 'CLEAR_DISTRIBUTORS_CACHE': (clear_distributors_cache, ),
     }

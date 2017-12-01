@@ -148,7 +148,12 @@ class TMHandler(tornado.web.RequestHandler):
         uri = tornado.escape.url_unescape(self.request.uri)
         params = {self.params[r.split('=')[0]] if r.split('=')[0] in self.params.keys(
         ) else r.split('=')[0]: r.split('=')[1] for r in uri.split('?')[1].split('&')}
+        params.update(event='OKTELL_' + params['event'].upper())
+        params.update(phone=params['phone'][-10:])
+        params.update(request_state=0)
         tornado.log.logging.info(params)
+        await ev_propagate({params['event']: params, })
+        """
         # Умиротворить индикатор отзвона, ибо звонить на самом деле пока ещё не начали...
         api_result = await tmtapi.api_request(
             ('set_request_state',
@@ -157,7 +162,6 @@ class TMHandler(tornado.web.RequestHandler):
               'phone_type': 1,
               'state_id': 0,
               }, ))
-        params['phone'] = params['phone'][-10:]
         # Получить подробности по заказу
         order_state = await tmtapi.api_request(
             ('get_order_state',
@@ -178,6 +182,7 @@ class TMHandler(tornado.web.RequestHandler):
         del order_info['phone_to_callback']
         tornado.log.logging.info(order_info)
         await ev_propagate({params['event'].upper(): order_info, })
+        """
 
 
 class WSHandler(tornado.websocket.WebSocketHandler):

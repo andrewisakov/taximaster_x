@@ -42,4 +42,9 @@ def bridge_start(bridge_data, ws, loop):
     logger.info(data)
     bridge_data = pickle.loads(data)
     writer.close()
+    for distributor in bridge_data['distributors']:
+        with (yield from aiohttp.ClientSession) as client:
+            with (yield from client.get(f'{settings.DISTRIBUTOR}/unlock/{distributor}')) as resp:
+                distributor_state = yield from resp.json()
+                logger.info(f'{distributor_state}')
     return bridge_data, ws

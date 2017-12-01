@@ -1,22 +1,21 @@
 #!/usr/bin/python3
 import asyncio
 import hashlib
-import tornado.log
 import json
 import ssl
 import xmltodict
 import urllib
 import urllib.request
 
-from settings import TMAPI
-# from settings import logger
+from tmtapi.settings import TMAPI
+from tmtapi.settings import logger
+import tmtapi.settings as settings
 
 
-inline_sign = ['set_request_state', 'get_info_by_order_id', 'change_order_state']
+inline_sign = ('set_request_state', 'get_info_by_order_id', 'change_order_state')
 
 
-@asyncio.coroutine
-def order_create(order_data):
+async def order_create(order_data):
     request = {
         'PHONE': order_data['calleeid'],
         'ORDER_STATE_ID': 1,
@@ -31,10 +30,9 @@ def order_create(order_data):
     return order_data
 
 
-# @asyncio.coroutine
 async def signature(data):
     # генератор подписи
-    tornado.log.logging.info('http_tmapi.signature generator')
+    logger.info('http_tmapi.signature generator')
     return hashlib.md5((data + TMAPI['sign']).encode()).hexdigest()
 
 
@@ -50,7 +48,7 @@ def _request(url, headers, params, method):
     else:  # GET
         r = urllib.request.urlopen(req, context=context)
         r = r.read()
-    tornado.log.logging.info(r)
+    logger.info(r)
     return r
 
 
@@ -60,7 +58,7 @@ async def inline_request(request, api, data, method='GET'):  # urlencoded зап
     url = f'http://{host}:{port}/{api[0]}/{api[1]}/{request}'
     params = urllib.parse.urlencode(data)
     signature_ = await signature(params)
-    tornado.log.logging.info(signature_)
+    logger.info(signature_)
     headers = {
         'Signature': signature_,
         'Content-Type': 'application/x-www-form-urlencoded',
@@ -70,10 +68,9 @@ async def inline_request(request, api, data, method='GET'):  # urlencoded зап
     if method == 'GET':
         url += ('?' + params)
         params = None
-    tornado.log.logging.info(url)
+    logger.info(url)
     response = _request(url, headers, params, method)
-    # print ('inline_request: %s' % response)
-    tornado.log.logging.info(f'{response}')
+    logger.info(f'{response}')
     try:  # Результат в json?
         response = json.loads(response.decode())
     except:  # Значит, в xml. ПЕреводим в json
@@ -81,10 +78,10 @@ async def inline_request(request, api, data, method='GET'):  # urlencoded зап
             response = json.loads(json.dumps(
                 xmltodict.parse(response.lower())))
             response = response['response']
-            tornado.log.logging.info(
+            logger.info(
                 'http_tmapi.inline_request.response (%s)' % response)
         except Exception as e:
-            tornado.log.logging.info(
+            logger.info(
                 'ERROR http_tmapi.inline_request %s -- %s -> %s ' % (e, request, response))
     try:
         for r in response['data']:  # Конвертация 'ГГГГММДДЧЧММСС' в datetime
@@ -99,7 +96,6 @@ async def inline_request(request, api, data, method='GET'):  # urlencoded зап
     return response
 
 
-# @asyncio.coroutine
 async def json_request(request, api, post_data, method='POST'):  # json запрос
     post_data = json.dumps(post_data)
     host, port = settings.TMAPI['host'], settings.TMAPI['post']
@@ -135,9 +131,8 @@ requests = {
 }
 
 
-def api_request(data):  # Точка входа в запрос
-    # global NEED_DEBUG
-    tornado.log.logging.info(f'http_tmapi.api_request: {data}')
+async def api_request(data):  # Точка входа в запрос
+    logger.info(f'http_tmapi.api_request: {data}')
     command = data[0].lower()
     params = data[1]
 
@@ -145,4 +140,5 @@ def api_request(data):  # Точка входа в запрос
     api = (requests[command][1].lower(), requests[command][2])
     func = requests[command][3]
     result = func(command, api, params, method)
+    logger.info(f'http_tmapi.api_request: {result}')
     return result
