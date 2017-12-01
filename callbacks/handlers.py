@@ -60,7 +60,7 @@ def callback_bridge_start(event, bridge_data, ws, loop):
         if distributor and phone:
             bridge_data['distributors'] += (distributor, )
             bridge_data['phones'] += (phone, )
-    if len(bridge_data['distributors']) > 1:
+    if len(bridge_data['distributors']) == 2:
         events = ['CALLBACK_BRIDGE_STARTED', ]
         task = loop.create_task(freeswitch.bridge_start(bridge_data, ws, loop))
         task.add_done_callback(freeswitch.callback_done)

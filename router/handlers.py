@@ -11,7 +11,6 @@ from tornado.escape import json_encode
 from tornado.escape import json_decode
 import database
 import settings
-import tmtapi
 
 
 # executor = concurrent.futures.ThreadPoolExecutor(20)
@@ -153,36 +152,6 @@ class TMHandler(tornado.web.RequestHandler):
         params.update(request_state=0)
         tornado.log.logging.info(params)
         await ev_propagate({params['event']: params, })
-        """
-        # Умиротворить индикатор отзвона, ибо звонить на самом деле пока ещё не начали...
-        api_result = await tmtapi.api_request(
-            ('set_request_state',
-             {'order_id': params['order_id'],
-              'state': 0,
-              'phone_type': 1,
-              'state_id': 0,
-              }, ))
-        # Получить подробности по заказу
-        order_state = await tmtapi.api_request(
-            ('get_order_state',
-                {'order_id': params['order_id']})
-        )
-        tornado.log.logging.info(order_state)
-        order_info = await tmtapi.api_request(
-            ('get_info_by_order_id',
-                {'order_id': params['order_id'],
-                 'fields': ('DRIVER_TIMECOUNT-SUMM-SUMCITY-'
-                            'DISCOUNTEDSUMM-SUMCOUNTRY-SUMIDLETIME-CASHLESS-'
-                            'CLIENT_ID-FROMBORDER-DRIVER_PHONE-CREATION_WAY').lower(), })
-        )
-        order_info = order_info['data']
-        # Консолидировать подробности по заказу
-        order_info.update(order_state)
-        order_info['phones'] = (order_info['phone_to_callback'][-10:], )
-        del order_info['phone_to_callback']
-        tornado.log.logging.info(order_info)
-        await ev_propagate({params['event'].upper(): order_info, })
-        """
 
 
 class WSHandler(tornado.websocket.WebSocketHandler):
