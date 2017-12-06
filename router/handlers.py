@@ -1,7 +1,8 @@
 #!/usr/bin/python3
 import json
+import database
 import tornado.log
-import tornado.web
+from tornado import web
 import tornado.websocket
 # from tornado.concurrent import run_on_executor
 import concurrent.futures
@@ -9,7 +10,6 @@ from tornado import gen
 from tornado.queues import Queue
 from tornado.escape import json_encode
 from tornado.escape import json_decode
-import database
 import settings
 
 
@@ -58,17 +58,17 @@ EVENTS = {
 }
 
 
-class Main(tornado.web.RequestHandler):
+class Main(web.RequestHandler):
     async def get(self):
         tornado.log.logging.info('Main')
 
 
-class InputData(tornado.web.RequestHandler):
+class InputData(web.RequestHandler):
     async def get(self):
         tornado.log.logging.info('InputData.get')
 
 
-class Login(tornado.web.RequestHandler):
+class Login(web.RequestHandler):
     async def get(self):
         tornado.log.logging.info('Login.get')
 
@@ -76,7 +76,7 @@ class Login(tornado.web.RequestHandler):
         tornado.log.logging.info('Login.post')
 
 
-class Logout(tornado.web.RequestHandler):
+class Logout(web.RequestHandler):
     async def get(self):
         tornado.log.logging.info('Logout.get')
 
@@ -84,17 +84,17 @@ class Logout(tornado.web.RequestHandler):
         tornado.log.logging.info('Logout.post')
 
 
-class SMSMessage(tornado.web.RequestHandler):
+class SMSMessage(web.RequestHandler):
     async def get(self):
         tornado.log.logging.info(self.request.body)
 
 
-class VoiceMessage(tornado.web.RequestHandler):
+class VoiceMessage(web.RequestHandler):
     async def get(self):
         tornado.log.logging.info(self.request.body)
 
 
-class TMABConnect(tornado.web.RequestHandler):
+class TMABConnect(web.RequestHandler):
     params = {'startparam1': 'phone0', 'startparam2': 'phone1', }
     async def get(self, request):
         self.set_status(200, 'OK')  # Умиротворить ТМСервер
@@ -106,7 +106,7 @@ class TMABConnect(tornado.web.RequestHandler):
         ev_propagate({'CALLBACK_BRIDGE_START': params, })
 
 
-class SNMP(tornado.web.RequestHandler):
+class SNMP(web.RequestHandler):
     SUPPORTED_METHODS = ('POST',)
 
     def check_xsrf_cookie(self):
@@ -128,7 +128,7 @@ class SNMP(tornado.web.RequestHandler):
         await ev_propagate(data)
 
 
-class Devices(tornado.web.RequestHandler):
+class Devices(web.RequestHandler):
     async def get(self):
         # tornado.log.logging.info(self.request.body)
         devices = await database.load_devices()
@@ -136,7 +136,7 @@ class Devices(tornado.web.RequestHandler):
         self.render('devices.html', devices=devices)
 
 
-class TMHandler(tornado.web.RequestHandler):
+class TMHandler(web.RequestHandler):
     params = {'name': 'event', 'startparm3': 'callback_state',
               'startparm4': 'order_id', 'startparm1': 'phone', }
 

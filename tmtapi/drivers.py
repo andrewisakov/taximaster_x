@@ -1,10 +1,11 @@
 #!/usr/bin/python3
-from asyncio import BundleSemaphore
+import datetime
+from asyncio import BoundedSemaphore
 import tmtapi.settings as settings
 from tmtapi.settings import logger
 import tmtapi.tmtapi as tmtapi
 import tmtapi.database as database
-import tmtapi.tmtapi as tmtapi
+# import tmtapi.tmtapi as tmtapi
 
 
 async def driver_term_oper_create(event, oper_data, ws, loop):
@@ -37,6 +38,7 @@ async def driver_term_oper_create(event, oper_data, ws, loop):
         oper_id = api_result['data']['oper_id'] if api_result['code'] == 0 else 0
         if oper_id > 0:
             # Операция создана
+            oper_data.update(oper_id=oper_id)
             await ws.send_json({'DRIVER_TERM_OPER_CREATED': oper_data, })
 
     return event, events, oper_data
@@ -44,17 +46,19 @@ async def driver_term_oper_create(event, oper_data, ws, loop):
 
 async def driver_term_oper_update(event, oper_data, ws, loop):
     events = []
-    if oper_data['oper_id']
-        oper_data['oper_id'] = oper_id
+    if oper_data['oper_id']:
+        oper_id = oper_data['oper_id']
         oper_data['tm_oper_time'] = datetime.datetime.now()
         term_id = oper_data['txn_id']
         trm_id = oper_data['trm_id']
         pay_system_id = await database.get_pay_system_id(trm_id)
         from_amount = oper_data['from_amount']
-        await database.update_driver_terminal_oper(term_id=term_id,
-                                                    term_opertime=oper_data['DATA'],
-                                                    term_pay_system_id=await database.get_pay_system_id(trm_id),
-                                                    term_summ=oper_data['from_amount'],
-                                                    comment=term_id)
+        await database.update_driver_terminal_oper(
+            term_id=term_id,
+            term_opertime=oper_data['DATA'],
+            term_pay_system_id=await database.get_pay_system_id(trm_id),
+            term_summ=oper_data['from_amount'],
+            comment=term_id,
+            oper_id=oper_id)
         await ws.send_json({'DRIVER_TERM_OPER_UPDATED': oper_data, })
     return event, events, oper_data

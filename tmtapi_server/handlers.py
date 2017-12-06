@@ -2,7 +2,7 @@
 import json
 import datetime
 import tornado.log
-import tornado.web
+from tornado import web
 import dicttoxml
 from tornado.httpclient import AsyncHTTPClient
 # import tornado.websocket
@@ -61,7 +61,7 @@ EVENTS = {
 }
 
 
-class Main(tornado.web.RequestHandler):
+class Main(web.RequestHandler):
     async def get(self):
         tornado.log.logging.info('Main')
         self.render('orders.html',
@@ -73,7 +73,7 @@ class Main(tornado.web.RequestHandler):
                     crews=tmtapi.CREWS)
 
 
-class ChangeOrderState(tornado.web.RequestHandler):
+class ChangeOrderState(web.RequestHandler):
     SUPPORTED_METHODS = ('POST',)
     params = {'event': 'name', 'callback_state': 'startparm3' ,
               'order_id': 'startparm4', 'phone': 'startparm1', }
@@ -129,7 +129,7 @@ class ChangeOrderState(tornado.web.RequestHandler):
         tornado.log.logging.info(response.request.body)
 
 
-class get_info_by_order_id(tornado.web.RequestHandler):
+class get_info_by_order_id(web.RequestHandler):
     def check_xsrf_cookie(self):
         pass
 
@@ -156,7 +156,7 @@ class get_info_by_order_id(tornado.web.RequestHandler):
         self.write(response)
 
 
-class get_order_state(tornado.web.RequestHandler):
+class get_order_state(web.RequestHandler):
     async def get(self, request):
         tornado.log.logging.info(request)
         args = self.request.arguments
@@ -196,7 +196,7 @@ class get_order_state(tornado.web.RequestHandler):
             return json_parmameter.strftime('%Y%m%d%H%M%S')
 
 
-class set_request_state(tornado.web.RequestHandler):
+class set_request_state(web.RequestHandler):
     def check_xsrf_cookie(self):
         pass
 
@@ -211,7 +211,7 @@ class set_request_state(tornado.web.RequestHandler):
         self.write('<response><code>0</code><descr>OK</descr></response>')
 
 
-class TM_TAPI(tornado.web.RequestHandler):
+class TM_TAPI(web.RequestHandler):
     def check_xsrf_cookie(self):
         pass
 
@@ -239,10 +239,10 @@ class TM_TAPI(tornado.web.RequestHandler):
                   for r in params.split('&')}
         tornado.log.logging.info(params)
         api_result = await tmtapi.requests[command](**params)
-        self.write(result)
+        self.write(api_result)
 
 
-class COMMON_API(tornado.web.RequestHandler):
+class COMMON_API(web.RequestHandler):
 
     async def get(self, request):
         self.set_status(200, 'OK')

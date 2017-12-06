@@ -112,3 +112,4 @@ callbacks/callbacks.log*
 *.kdev4
 *.py~
 distributor/distributor.log.*
+*.kate-swp

@@ -1,13 +1,13 @@
 #!/usr/bin/python3
 # import argparse
 import sys
-import datetime
-import psycopg2
+# import datetime
+# import psycopg2
 import asyncio
 import aiohttp
 
 
-params = ('orders', 'callbacks', 'sms')
+params = ('orders', 'callbacks', 'sms', 'tmtapi')
 service_name = ''
 
 
@@ -35,6 +35,7 @@ async def main(loop):
                         order_data.update(order_state=ev)
 
                         if order_data['order_id'] not in handlers.orders.keys():
+                            # Важно, чтобы события выполнялись в порядке поступления, без гонки
                             handlers.orders[order_data['order_id']] = {
                                 'semaphore': asyncio.BoundedSemaphore(1),
                                 'events': []}
@@ -59,22 +60,26 @@ if __name__ == '__main__':
         service_name = sys.argv[1].upper()
         if sys.argv[1] == 'orders':
             from orders.settings import logger
-            import orders.settings as settings
-            import orders.handlers as handlers
+            from orders import settings
+            from orders import handlers
         elif sys.argv[1] == 'callbacks':
             from callbacks.settings import logger
-            import callbacks.settings as settings
-            import callbacks.handlers as handlers
+            from callbacks import settings
+            from callbacks import handlers
         elif sys.argv[1] == 'sms':
             from sms.settings import logger
-            import sms.settings as settings
-            import sms.handlers as handlers
+            from sms import settings
+            from sms import handlers
+        elif sys.argv[1] == 'tmtapi':
+            from tmtapi.settings import logger
+            from tmtapi import settings
+            from tmtapi import handlers
         else:
             _exit = True
     else:
         _exit = True
     if _exit:
-        print('starter.py orders|callbacks|sms')
+        print('starter.py orders|callbacks|sms|tmtapi')
         sys.exit(1)
     logger.info('Запуск')
     loop = asyncio.get_event_loop()

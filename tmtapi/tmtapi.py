@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 import asyncio
 import hashlib
+import datetime
 import json
 import ssl
 import xmltodict
@@ -139,6 +140,6 @@ async def api_request(data):  # Точка входа в запрос
     method = requests[command][0].upper()
     api = (requests[command][1].lower(), requests[command][2])
     func = requests[command][3]
-    result = func(command, api, params, method)
+    result = await func(command, api, params, method)
     logger.info(f'http_tmapi.api_request: {result}')
     return result

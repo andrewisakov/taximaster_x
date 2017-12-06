@@ -12,27 +12,24 @@ order_states = {'acquire': asyncio.BoundedSemaphore(1), }
 greetings = {'acquire': asyncio.BoundedSemaphore(1), }  # {'order_state': ''}
 
 
-conn = fdb.connect(**settings.FDB)
-
-
 @asyncio.coroutine
 def get_sounds(SQL):
-    try:
-        c = conn.cursor()
-        c.execute(SQL)
-        data = {k.upper(): v for k, v in c.fetchall()}
-        c.close()
-        yield data
-    except Exception as e:
-        logger.error(e)
-        db.rollback()
-        yield {}
+    with fdb.connect(**settings.FDB) as db:
+        with db.cursor() as c:
+            try:
+                c.execute(SQL)
+                data = {k.upper(): v for k, v in c.fetchall()}
+                return data
+            except Exception as e:
+                logger.error(e)
+                db.rollback()
+                return {}
 
 
 @asyncio.coroutine
 def get_greeting(order_state):
     order_state = order_state.upper()
-    with greetings['acquire']:
+    with (yield from greetings['acquire']):
         if order_state in greetings.keys():
             yield greetings[order_state]
         else:
@@ -79,7 +76,7 @@ def get_model(car_mark, car_model):
 @asyncio.coroutine
 def get_mark(car_mark):
     car_mark = car_mark.upper()
-    with marks['acquire']:
+    with (yield from marks['acquire']):
         if car_mark in marks.keys():
             yield marks[car_mark]
         else:
@@ -95,7 +92,7 @@ def get_mark(car_mark):
 @asyncio.coroutine
 def get_color(car_color):
     car_color = car_color.upper()
-    with colors['acquire']:
+    with (yield from colors['acquire']):
         if car_color in colors.keys():
             yield colors[car_color]
         else:
