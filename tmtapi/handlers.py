@@ -138,6 +138,12 @@ async def no_cars_aborted(event, order_data, ws, loop):
     return event, events, order_data
 
 
+async def tmabconnect(event, order_data, ws, loop):
+    events = []
+    await ws.send_json({'CALLBACK_BRIDGE_START': order_data, })
+    return event, events, order_data
+
+
 EVENTS = {
     'OKTELL_ORDER_CREATED': (created, ),
     'OKTELL_ORDER_ACCEPTED': (accepted, ),
@@ -148,6 +154,7 @@ EVENTS = {
     'OKTELL_ORDER_OFFERED_DRIVER': (offered_driver, ),
     'OKTELL_ORDER_NO_CARS': (no_cars, ),
     'OKTELL_ORDER_NO_CARS_ABORTED': (no_cars, ),
+    'OKTELL_TMABCONNECT': (tmabconnect, ),
     'SET_REQUEST_STATE': (set_request_state, ),
     'CALLBACK_ORIGINATE_DELIVERED': (callback_delivered, ),
     'CALLBACK_ORIGINATE_NOANSWER': (callback_noanswer, ),

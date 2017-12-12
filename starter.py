@@ -1,13 +1,10 @@
 #!/usr/bin/python3
-# import argparse
 import sys
-# import datetime
-# import psycopg2
 import asyncio
 import aiohttp
 
 
-params = ('orders', 'callbacks', 'sms', 'tmtapi')
+services = ('orders', 'callbacks', 'sms', 'tmtapi')
 service_name = ''
 
 
@@ -15,7 +12,8 @@ def exception_handler(loop, context):
     print(context)
 
 
-async def main(loop):
+async def main(loop, service_name):
+    service_name = service_name.upper()
     active = True
     while active:
         try:
@@ -23,7 +21,7 @@ async def main(loop):
             async with session.ws_connect(url=settings.WS_SERVER) as ws:
                 # logger.debug(ws)
                 await ws.send_json({'SUBSCRIBE': tuple(handlers.EVENTS.keys())})
-                while True:
+                while active:
                     events = await ws.receive_json()
                     for ev, order_data in events.items():
                         ev = ev.upper()
@@ -42,8 +40,8 @@ async def main(loop):
                         task = loop.create_task(
                             handlers.EVENTS[ev][0](ev, order_data, ws, loop))
                         task.add_done_callback(handlers.event_result)
-                    if not active:
-                        break
+                    # if not active:
+                    #     break
                 await ws.send_json({'UNSUBSCRIBE': tuple(handlers.EVENTS.keys())})
             session.close()
         except Exception as e:
@@ -55,22 +53,22 @@ async def main(loop):
 
 if __name__ == '__main__':
     _exit = False
-    print(sys.argv)
-    if (len(sys.argv) != 1) and (sys.argv[1] in params):
-        service_name = sys.argv[1].upper()
-        if sys.argv[1] == 'orders':
+    if (len(sys.argv) != 1) and (sys.argv[1] in services):
+        service_name = sys.argv[1]
+        print(f'Параметры {service_name}')
+        if service_name == 'orders':
             from orders.settings import logger
             from orders import settings
             from orders import handlers
-        elif sys.argv[1] == 'callbacks':
+        elif service_name == 'callbacks':
             from callbacks.settings import logger
             from callbacks import settings
             from callbacks import handlers
-        elif sys.argv[1] == 'sms':
+        elif service_name == 'sms':
             from sms.settings import logger
             from sms import settings
             from sms import handlers
-        elif sys.argv[1] == 'tmtapi':
+        elif service_name == 'tmtapi':
             from tmtapi.settings import logger
             from tmtapi import settings
             from tmtapi import handlers
@@ -79,12 +77,12 @@ if __name__ == '__main__':
     else:
         _exit = True
     if _exit:
-        print('starter.py orders|callbacks|sms|tmtapi')
+        print(f'starter.py {"|".join(services)}')
         sys.exit(1)
     logger.info('Запуск')
     loop = asyncio.get_event_loop()
     # future = asyncio.Future()
-    task = loop.run_until_complete(main(loop))
+    task = loop.run_until_complete(main(loop, service_name))
     loop.stop()
     loop.close()
     # loop.run_forever()

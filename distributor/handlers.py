@@ -33,8 +33,8 @@ async def smsc(request):
     phone = request.match_info['phone'][-10:]
     response = '{}'
     if (len(phone) == max(settings.PHONE_LENGTH)) and (phone[0] == '9'):
-        smsc, channel, sended, phone = await database.select_smsc(phone, pool)
-        response = {'phone': phone, 'smsc': smsc, 'channel': channel, 'sended': sended}
+        smsc_gate, channel, sended, phone = await database.select_smsc(phone, pool)
+        response = {'phone': phone, 'smsc': smsc_gate, 'channel': channel, 'sended': sended}
     return web.Response(status=200, text=json.dumps(response), content_type='application/json')
 
 
@@ -45,6 +45,7 @@ async def distributor(request):
     lock = int(request.match_info['lock']) != 0
     if len(phone) in settings.PHONE_LENGTH:
         distributor, phone = await database.select_distributor(phone, pool)
+        logger.info(f'{phone} {distributor}')
         if lock:
             await database.distributors[distributor].acquire()
         response = {'phone': phone, 'distributor': distributor, 'locked': lock}

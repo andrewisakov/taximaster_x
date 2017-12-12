@@ -58,6 +58,7 @@ async def select_distributor(phone, pool):
                             distributors[d[0]]._value = d[1]
 
     phone = (settings.REGIO_CODE + phone)  # Привести номер телефога к окончательному виду
+    logger.info(f'{phone} {distributor}')
     return distributor, phone
 
 

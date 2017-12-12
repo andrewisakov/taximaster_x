@@ -14,4 +14,4 @@ logger = logger_.rotating_log(os.path.join(
 #        'password=freeswitch host=127.0.0.1 port=15432')
 FREESWITCH_ESL = {'host': '127.0.0.1', 'port': 28021}
 
-DISTRIBUTOR = '127.0.0.1:18021'
+DISTRIBUTOR = 'http://127.0.0.1:18021'

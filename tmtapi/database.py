@@ -194,11 +194,11 @@ async def get_color(car_color):
 async def get_gosnumber(gosnumber):
     gn = []
     if len(gosnumber) == 3:
-        gn.append(f'tm{gosnumber[0]}00' if gosnumber[0] != '0' else 'tm0')
+        gn.append(f'ru/tm{gosnumber[0]}00' if gosnumber[0] != '0' else 'ru/tm0')
         if gosnumber[1] == '1':  # 10..19
             gn.append(f'tm{gosnumber[1:]}')
         elif gosnumber[1] == '0':  # <10
-            gn.append(f'tm{gosnumber[2]}' if gosnumber[0] != '0' else f'tm0&tm{gosnumber[2]}')
+            gn.append(f'tm{gosnumber[2]}' if gosnumber[0] != '0' else f'ru/tm0&ru/tm{gosnumber[2]}')
         else:
             gn.append(f'tm{gosnumber[1]}0')
             gn.append(f'tm{gosnumber[2]}' if gosnumber[2] != '0' else '')
@@ -206,14 +206,14 @@ async def get_gosnumber(gosnumber):
         gosnumber = gosnumber[:2], gosnumber[2:]
         for g in gosnumber:
             if g[0] == '1':  # 10..19
-                gn.append(f'tm{g}')
+                gn.append(f'ru/tm{g}')
             elif g[0] == '0':
-                gn.append(f'tm0')
-                gn.append(f'tm{g[1]}')
+                gn.append(f'ru/tm0')
+                gn.append(f'ru/tm{g[1]}')
             else:
-                gn.append(f'tm{g[0]}0')
+                gn.append(f'ru/tm{g[0]}0')
                 if g[1] != '0':
-                    gn.append(f'tm{g[1]}')
+                    gn.append(f'ru/tm{g[1]}')
     else:
         return ''
     return '&'.join(gn)
@@ -224,11 +224,11 @@ async def get_minutes(driver_timecount):
     if driver_timecount > 0:
         if driver_timecount > 19:
             minutes = (driver_timecount // 10, driver_timecount % 10)
-            minutes = f'tm{minutes[0]}0&tm{minutes[1]}&'
+            minutes = f'ru/tm{minutes[0]}0&ru/tm{minutes[1]}&'
         else:
-            minutes = f'tm{driver_timecount}&'
+            minutes = f'ru/tm{driver_timecount}&'
     else:
-        minutes = 'tm5&tm7&'
+        minutes = 'ru/tm5&ru/tm7&'
     return minutes
 
 

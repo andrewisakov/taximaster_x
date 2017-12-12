@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 import json
-import database
+import datetime
 import tornado.log
 from tornado import web
 import tornado.websocket
@@ -11,6 +11,7 @@ from tornado.queues import Queue
 from tornado.escape import json_encode
 from tornado.escape import json_decode
 import settings
+import database
 
 
 # executor = concurrent.futures.ThreadPoolExecutor(20)
@@ -95,12 +96,12 @@ class VoiceMessage(web.RequestHandler):
 
 
 class TMABConnect(web.RequestHandler):
-    params = {'startparam1': 'phone0', 'startparam2': 'phone1', }
     async def get(self, request):
+        params = {'startparam1': 'phone0', 'startparam2': 'phone1', }
         self.set_status(200, 'OK')  # Умиротворить ТМСервер
         uri = tornado.escape.url_unescape(self.request.uri)
         tornado.log.logging.info(uri)
-        params = {self.params[r.split('=')[0]] if r.split('=')[0] in self.params.keys(
+        params = {params[r.split('=')[0]] if r.split('=')[0] in params.keys(
         ) else r.split('=')[0]: r.split('=')[1] for r in uri.split('?')[1].split('&')}
         tornado.log.logging.info(params)
         ev_propagate({'CALLBACK_BRIDGE_START': params, })
@@ -137,19 +138,23 @@ class Devices(web.RequestHandler):
 
 
 class TMHandler(web.RequestHandler):
-    params = {'name': 'event', 'startparm3': 'callback_state',
-              'startparm4': 'order_id', 'startparm1': 'phone', }
-
     async def get(self, request):
+        params = {'name': 'event', 'startparm3': 'callback_state',
+                  'startparm4': 'order_id', 'startparm1': 'phone',
+                  'startparm2': 'phone1'}
         self.set_status(200, 'OK')  # Умиротворить ТМСервер
         # tornado.log.logging.info(self.kwargs)
         # tornado.log.logging.info('TMHandler.name: %s' % self.get_argument('name'))
         uri = tornado.escape.url_unescape(self.request.uri)
-        params = {self.params[r.split('=')[0]] if r.split('=')[0] in self.params.keys(
+        params = {params[r.split('=')[0]] if r.split('=')[0] in params.keys(
         ) else r.split('=')[0]: r.split('=')[1] for r in uri.split('?')[1].split('&')}
+        tornado.log.logging.info(params)
+        if params['event'] == 'TMABConnect':
+            params.update(phones=(params['phone'], params['phone1']))
+        else:
+            params.update(phone=params['phone'][-10:])
+            params.update(request_state=0)
         params.update(event='OKTELL_' + params['event'].upper())
-        params.update(phone=params['phone'][-10:])
-        params.update(request_state=0)
         tornado.log.logging.info(params)
         await ev_propagate({params['event']: params, })
 

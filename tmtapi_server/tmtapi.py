@@ -32,7 +32,7 @@ CREWS = [{'id': 1, 'car_id': 1, 'driver_id': 1}, ]
 CARS = [{'id': 1, 'color': 'красный', 'mark': 'ВАЗ', 'model': '2114',
          'gosnumber': '515'}, ]
 
-DRIVERS = [{'id': 1, 'term_account': '01181', 'phone': '88001001010', }, ]
+DRIVERS = [{'id': 1, 'term_account': '01000', 'phone': '9061388888', }, ]
 CALLBACK_STATES = ('order_callback_accepted', 'order_callback_started',
                    'order_callback_delivered', 'order_callback_busy',
                    'order_callback_no_answer', 'order_callback_error')

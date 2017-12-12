@@ -113,3 +113,5 @@ callbacks/callbacks.log*
 *.py~
 distributor/distributor.log.*
 *.kate-swp
+esl_proxy/esl_proxy.log.*
+tmtapi/tmtapi.log.*
