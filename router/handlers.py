@@ -139,9 +139,9 @@ class Devices(web.RequestHandler):
 
 class TMHandler(web.RequestHandler):
     async def get(self, request):
-        params = {'name': 'event', 'startparm3': 'callback_state',
-                  'startparm4': 'order_id', 'startparm1': 'phone',
-                  'startparm2': 'phone1'}
+        params = {'name': 'event', 'startparam3': 'callback_state',
+                  'startparam4': 'order_id', 'startparam1': 'phone',
+                  'startparam2': 'phone1'}
         self.set_status(200, 'OK')  # Умиротворить ТМСервер
         # tornado.log.logging.info(self.kwargs)
         # tornado.log.logging.info('TMHandler.name: %s' % self.get_argument('name'))
